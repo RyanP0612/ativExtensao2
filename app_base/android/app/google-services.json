@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1059926187970",
+    "project_id": "extensao2-e3556",
+    "storage_bucket": "extensao2-e3556.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1059926187970:android:34775a959fee58a7b8405b",
+        "android_client_info": {
+          "package_name": "teste2com.example.app_base"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHtrs1_zaV13dVkEX31Ha_itWLJVUNBss"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

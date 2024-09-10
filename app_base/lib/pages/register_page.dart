@@ -1,7 +1,7 @@
 import 'package:app_base/components/button.dart';
 import 'package:app_base/components/text_field.dart';
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 class RegisterPage extends StatefulWidget {
   final Function()? onTap;
 
@@ -16,6 +16,67 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailTextController = TextEditingController();
   final passwordTextController = TextEditingController();
   final confirmPasswordTextController = TextEditingController();
+Map<String, String> errorMessages = {
+  'user-not-found': 'Nenhum usuário encontrado com este e-mail.',
+  'wrong-password': 'Senha incorreta.',
+  'email-already-in-use': 'Este e-mail já está em uso.',
+  'invalid-email': 'Email inválido.',
+  'weak-password': 'A senha deve ter pelo menos 6 caracteres.',
+  // Adicione mais traduções conforme necessário
+};
+  // sign user up
+  void signUp() async{
+      // circulo de carregamento
+    showDialog(context: context, builder: (context)=> const Center(child: CircularProgressIndicator(),));
+
+    if(passwordTextController.text != confirmPasswordTextController.text){
+      // pop loading
+      Navigator.pop(context);
+      // show error
+      displayMessage(context, "Senhas diferentes", false);
+      return;
+    }
+
+    // try criar usuario
+    try{
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(email: emailTextController.text, password: passwordTextController.text);
+      // if(context.mounted) Navigator.pop(context);
+    } on FirebaseAuthException catch (e){
+   print(e.code);
+    Navigator.pop(context); 
+      displayMessage(context, e.code, true);
+    }
+
+  }
+
+  
+void displayMessage(BuildContext context, String errorCode, bool traduzir) {
+  if(traduzir){
+String message = errorMessages[errorCode] ?? 'Ocorreu um erro desconhecido.';   
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(message),
+      
+    
+     
+    ),
+  ); 
+  }
+  else{
+    showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(errorCode),
+      
+    
+     
+    ),
+  );
+  
+}
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   height: 25,
                 ),
                 // butao de logar
-                MyButton(onTap: () {}, text: "Logar"),
+                MyButton(onTap: signUp, text: "Logar"),
 
                 const SizedBox(
                   height: 25,

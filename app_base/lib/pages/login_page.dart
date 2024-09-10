@@ -17,9 +17,54 @@ class _LoginPageState extends State<LoginPage> {
   final emailTextController = TextEditingController();
   final passwordTextController = TextEditingController();
 
-  Future<void> signIn() async {
-await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailTextController.text, password: passwordTextController.text);
+Map<String, String> errorMessages = {
+  'user-not-found': 'Nenhum usuário encontrado com este e-mail.',
+  'wrong-password': 'Senha incorreta.',
+  'email-already-in-use': 'Este e-mail já está em uso.',
+  'invalid-email': 'Email inválido.',
+  'weak-password': 'A senha deve ter pelo menos 6 caracteres.',
+  // Adicione mais traduções conforme necessário
+};
+
+void signIn() async {
+  // circulo de carregamento
+  showDialog(context: context, builder: (context)=> const Center(child: CircularProgressIndicator(),));
+
+
+
+  try {
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: emailTextController.text,
+      password: passwordTextController.text,
+    );
+    
+// tirar o carregamento pop
+if(context.mounted) Navigator.pop(context);
+  } on FirebaseAuthException catch (e) {
+    print(e.code);
+    Navigator.pop(context); 
+
+    // tirar o carregamento automaticamente
+    displayMessage(context, e.code);
+
+    
+
+    
   }
+}
+
+void displayMessage(BuildContext context, String errorCode) {
+  String message = errorMessages[errorCode] ?? 'Ocorreu um erro desconhecido.';
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(message),
+      
+    
+     
+    ),
+  );
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

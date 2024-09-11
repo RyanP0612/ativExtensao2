@@ -40,7 +40,8 @@ Map<String, String> errorMessages = {
     // try criar usuario
     try{
       await FirebaseAuth.instance.createUserWithEmailAndPassword(email: emailTextController.text, password: passwordTextController.text);
-      // if(context.mounted) Navigator.pop(context);
+      // Navigator.pop(context); 
+      if(context.mounted) Navigator.pop(context);
     } on FirebaseAuthException catch (e){
    print(e.code);
     Navigator.pop(context); 

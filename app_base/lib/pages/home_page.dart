@@ -1,3 +1,4 @@
+import 'package:app_base/components/drawer.dart';
 import 'package:app_base/components/text_field.dart';
 import 'package:app_base/components/wall_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -46,8 +47,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      
       appBar: AppBar(
+       
         backgroundColor: Colors.grey[900],
         centerTitle: true,
         title: Text(
@@ -55,6 +57,7 @@ class _HomePageState extends State<HomePage> {
           style:
               TextStyle(color: Colors.grey[300], fontWeight: FontWeight.bold),
         ),
+        
         actions: [
           IconButton(
               onPressed: signOut,
@@ -63,7 +66,12 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.grey[300],
               ))
         ],
+        
+        foregroundColor: Colors.grey[300], //cor do drawer / gaveta
       ),
+      backgroundColor: Colors.grey[300],
+       drawer: MyDrawer(),
+       
       body: Center(
         child: Column(
           children: [

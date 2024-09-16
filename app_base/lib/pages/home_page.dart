@@ -1,6 +1,7 @@
 import 'package:app_base/components/drawer.dart';
 import 'package:app_base/components/text_field.dart';
 import 'package:app_base/components/wall_post.dart';
+import 'package:app_base/pages/profile_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -33,7 +34,7 @@ class _HomePageState extends State<HomePage> {
         "UserEmail": currentUser.email,
         "Message": textController.text,
         "TimeStamp": Timestamp.now(),
-        'Likes':[],
+        'Likes': [],
       });
     }
 
@@ -44,12 +45,17 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void goToProfilePage() {
+    Navigator.pop(context);
+
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => ProfilePage()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       appBar: AppBar(
-       
         backgroundColor: Colors.grey[900],
         centerTitle: true,
         title: Text(
@@ -57,21 +63,16 @@ class _HomePageState extends State<HomePage> {
           style:
               TextStyle(color: Colors.grey[300], fontWeight: FontWeight.bold),
         ),
-        
-        actions: [
-          IconButton(
-              onPressed: signOut,
-              icon: Icon(
-                Icons.logout,
-                color: Colors.grey[300],
-              ))
-        ],
-        
+
+        actions: [],
+
         foregroundColor: Colors.grey[300], //cor do drawer / gaveta
       ),
       backgroundColor: Colors.grey[300],
-       drawer: MyDrawer(),
-       
+      drawer: MyDrawer(
+        onProfileTap: goToProfilePage,
+        onSignOut: signOut,
+      ),
       body: Center(
         child: Column(
           children: [
@@ -98,7 +99,11 @@ class _HomePageState extends State<HomePage> {
                         // Obtém o documento do índice atual da lista de documentos
                         final post = snapshot.data!.docs[index];
                         return LeticiaLindaPost(
-                            message: post['Message'], user: post["UserEmail"], postId: post.id,likes: List<String>.from(post['Likes'] ?? []),);
+                          message: post['Message'],
+                          user: post["UserEmail"],
+                          postId: post.id,
+                          likes: List<String>.from(post['Likes'] ?? []),
+                        );
                         // O retorno do widget para cada item da lista deve ser definido aqui
                       },
                     );

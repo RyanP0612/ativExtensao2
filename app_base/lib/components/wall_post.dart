@@ -1,3 +1,4 @@
+import 'package:app_base/components/comment_button.dart';
 import 'package:app_base/components/like_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,6 +28,8 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
   final currentUser = FirebaseAuth.instance.currentUser!;
   bool isLiked = false;
 
+  final _commentTextController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -35,30 +38,75 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
   }
 
   void toggledLike() {
-  setState(() {
-    isLiked = !isLiked; // Atualiza o estado da variável `isLiked`, alternando seu valor entre `true` e `false`.
-  });
-
-  // Acessa o documento específico no Firestore usando o ID fornecido por `widget.postId`.
-  DocumentReference postRef = FirebaseFirestore.instance.collection("User Post").doc(widget.postId);
-
-  if (isLiked) {
-    // Se a postagem foi marcada como curtida (isLiked é `true`):
-    // Adiciona o e-mail do usuário atual ao campo "Likes" do documento no Firestore.
-    // `FieldValue.arrayUnion` garante que o e-mail seja adicionado apenas se ainda não estiver presente.
-    postRef.update({
-      'Likes': FieldValue.arrayUnion([currentUser.email])
+    setState(() {
+      isLiked =
+          !isLiked; // Atualiza o estado da variável `isLiked`, alternando seu valor entre `true` e `false`.
     });
-  } else {
-    // Se a postagem foi desmarcada como curtida (isLiked é `false`):
-    // Remove o e-mail do usuário atual do campo "Likes" do documento no Firestore.
-    // `FieldValue.arrayRemove` garante que o e-mail seja removido apenas se estiver presente.
-    postRef.update({
-      'Likes': FieldValue.arrayRemove([currentUser.email])
+
+    // Acessa o documento específico no Firestore usando o ID fornecido por `widget.postId`.
+    DocumentReference postRef =
+        FirebaseFirestore.instance.collection("User Post").doc(widget.postId);
+
+    if (isLiked) {
+      // Se a postagem foi marcada como curtida (isLiked é `true`):
+      // Adiciona o e-mail do usuário atual ao campo "Likes" do documento no Firestore.
+      // `FieldValue.arrayUnion` garante que o e-mail seja adicionado apenas se ainda não estiver presente.
+      postRef.update({
+        'Likes': FieldValue.arrayUnion([currentUser.email])
+      });
+    } else {
+      // Se a postagem foi desmarcada como curtida (isLiked é `false`):
+      // Remove o e-mail do usuário atual do campo "Likes" do documento no Firestore.
+      // `FieldValue.arrayRemove` garante que o e-mail seja removido apenas se estiver presente.
+      postRef.update({
+        'Likes': FieldValue.arrayRemove([currentUser.email])
+      });
+    }
+  }
+
+// adicionar comentario
+  void addComment(String commentText) {
+    FirebaseFirestore.instance
+        .collection("User Post")
+        .doc(widget.postId)
+        .collection('Comments')
+        .add({
+      "CommentText": commentText,
+      "CommentedBy": currentUser.email,
+      "CommentTime": Timestamp.now() //lembrar de formatar no dispray
     });
   }
-}
 
+// show a dialog box
+  void showCommentDialog() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text("Adicionar comentario"),
+              content: TextField(
+                controller: _commentTextController,
+                decoration:
+                    InputDecoration(hintText: "Escreva um comentário..."),
+              ),
+              actions: [
+               
+                // cancel button
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+
+                      _commentTextController.clear();
+                      Navigator.pop(context); 
+                      },
+                    child: Text("Cancelar")),
+                     // save button
+                TextButton(
+                    onPressed: () {addComment(_commentTextController.text);                    _commentTextController.clear();
+                    },
+                    child: Text("Postar")),
+              ],
+            ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,35 +115,70 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
           color: Colors.white, borderRadius: BorderRadius.circular(8)),
       margin: EdgeInsets.only(top: 25, left: 25, right: 25),
       padding: EdgeInsets.all(25),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            children: [
-// like button
-              LikeButton(isLiked: isLiked, onTap: toggledLike),
-const SizedBox(height: 5,),
-// like count
-Text(widget.likes.length.toString(), style: TextStyle(color: Colors.grey[700]),),
-            ],
-          ),
-
-          SizedBox(
-            width: 20,
-          ),
           // mensagem e email do usuario
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(widget.message),
+                  SizedBox(
+                height: 5,
+              ),
               Text(
                 widget.user,
                 style: TextStyle(color: Colors.grey[500]),
               ),
-              SizedBox(
-                height: 10,
-              ),
-              Text(widget.message)
+          
+              
             ],
           ),
+          SizedBox(
+            width: 20,
+          ),
+          // botoes
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // like
+              Column(
+            children: [
+// like button
+              LikeButton(isLiked: isLiked, onTap: toggledLike),
+              const SizedBox(
+                height: 5,
+              ),
+// like count
+              Text(
+                widget.likes.length.toString(),
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+            ],
+          ),
+          const SizedBox(width: 10,),
+// comentario
+                Column(
+            children: [
+// comment button
+             CommentButton(onTap: showCommentDialog),
+              const SizedBox(
+                height: 5,
+              ),
+// comment count
+              Text(
+                widget.likes.length.toString(),
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+            ],
+          ),
+            ],
+          ),
+
+          // comments
+          StreamBuilder<QuerySnapshot>(stream: FirebaseFirestore.instance.collection("User Post").doc(widget.postId).collection("Comments").orderBy("CommentTime", descending: true).snapshots(), builder:(context, snapshot) {
+            
+          },)
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:app_base/components/button.dart';
 import 'package:app_base/components/text_field.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 class RegisterPage extends StatefulWidget {
@@ -38,11 +39,25 @@ Map<String, String> errorMessages = {
     }
 
     // try criar usuario
-    try{
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(email: emailTextController.text, password: passwordTextController.text);
-      // Navigator.pop(context); 
-      if(context.mounted) Navigator.pop(context);
-    } on FirebaseAuthException catch (e){
+    try {
+  // Cria um novo usuário com Firebase Authentication usando o email e senha fornecidos
+  UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+    email: emailTextController.text, // pega o email do campo de texto
+    password: passwordTextController.text // pega a senha do campo de texto
+  );
+  
+  // Verifica se o contexto ainda está "montado" para evitar erros. Se sim, navega para a tela anterior
+  // Isso pode ser útil se você quiser fechar a tela de registro após a criação do usuário.
+  if (context.mounted) Navigator.pop(context);
+
+  // Após criar o usuário, cria um novo documento no Cloud Firestore chamado "Users",
+  // onde o ID do documento será o email do usuário (para facilitar a recuperação dos dados no futuro)
+  FirebaseFirestore.instance.collection("Users").doc(userCredential.user!.email).set({
+    'username': emailTextController.text.split('@')[0], // Extrai o nome de usuário antes do "@" do email
+    'bio': 'Bio vazia...' // Define a bio inicial como "Bio vazia..."
+  });
+  
+} on FirebaseAuthException catch (e){
    print(e.code);
     Navigator.pop(context); 
       displayMessage(context, e.code, true);

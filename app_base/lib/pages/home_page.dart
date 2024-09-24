@@ -1,6 +1,7 @@
 import 'package:app_base/components/drawer.dart';
 import 'package:app_base/components/text_field.dart';
 import 'package:app_base/components/wall_post.dart';
+import 'package:app_base/helper/helper_methods.dart';
 import 'package:app_base/pages/profile_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -68,11 +69,13 @@ class _HomePageState extends State<HomePage> {
 
         foregroundColor: Colors.grey[300], //cor do drawer / gaveta
       ),
-      backgroundColor: Colors.grey[300],
+      backgroundColor:  Colors.grey[300],
       drawer: MyDrawer(
         onProfileTap: goToProfilePage,
         onSignOut: signOut,
+        
       ),
+      
       body: Center(
         child: Column(
           children: [
@@ -103,6 +106,7 @@ class _HomePageState extends State<HomePage> {
                           user: post["UserEmail"],
                           postId: post.id,
                           likes: List<String>.from(post['Likes'] ?? []),
+                          time:formatDate( post["TimeStamp"]),
                         );
                         // O retorno do widget para cada item da lista deve ser definido aqui
                       },

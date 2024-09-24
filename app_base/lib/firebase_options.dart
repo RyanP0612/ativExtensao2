@@ -59,4 +59,5 @@ class DefaultFirebaseOptions {
     projectId: 'extensao2-e3556',
     storageBucket: 'extensao2-e3556.appspot.com',
   );
+
 }

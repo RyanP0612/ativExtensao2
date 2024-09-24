@@ -1,5 +1,7 @@
+import 'package:app_base/components/comment.dart';
 import 'package:app_base/components/comment_button.dart';
 import 'package:app_base/components/like_button.dart';
+import 'package:app_base/helper/helper_methods.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,6 +11,7 @@ import 'package:flutter/material.dart';
 class LeticiaLindaPost extends StatefulWidget {
   final String message;
   final String user;
+  final String time;
   final String postId;
   final List<String> likes;
 
@@ -17,7 +20,7 @@ class LeticiaLindaPost extends StatefulWidget {
       required this.message,
       required this.user,
       required this.postId,
-      required this.likes});
+      required this.likes, required this.time});
 
   @override
   State<LeticiaLindaPost> createState() => _LeticiaLindaPostState();
@@ -89,19 +92,21 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
                     InputDecoration(hintText: "Escreva um comentário..."),
               ),
               actions: [
-               
                 // cancel button
                 TextButton(
                     onPressed: () {
                       Navigator.pop(context);
 
                       _commentTextController.clear();
-                      Navigator.pop(context); 
-                      },
+                     
+                    },
                     child: Text("Cancelar")),
-                     // save button
+                // save button
                 TextButton(
-                    onPressed: () {addComment(_commentTextController.text);                    _commentTextController.clear();
+                    onPressed: () {
+                       Navigator.pop(context);
+                      addComment(_commentTextController.text);
+                      _commentTextController.clear();
                     },
                     child: Text("Postar")),
               ],
@@ -112,7 +117,7 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(8)),
+          color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
       margin: EdgeInsets.only(top: 25, left: 25, right: 25),
       padding: EdgeInsets.all(25),
       child: Column(
@@ -123,15 +128,16 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(widget.message),
-                  SizedBox(
+              SizedBox(
                 height: 5,
               ),
-              Text(
-                widget.user,
-                style: TextStyle(color: Colors.grey[500]),
-              ),
-          
-              
+              Row(
+          children: [
+            Text(widget.user, style: TextStyle(color: Colors.grey[400]),),
+            Text(" * ", style: TextStyle(color: Colors.grey[400]),),
+            Text(widget.time, style: TextStyle(color: Colors.grey[400]),),
+          ],
+        )
             ],
           ),
           SizedBox(
@@ -143,42 +149,85 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
             children: [
               // like
               Column(
-            children: [
+                children: [
 // like button
-              LikeButton(isLiked: isLiked, onTap: toggledLike),
-              const SizedBox(
-                height: 5,
-              ),
+                  LikeButton(isLiked: isLiked, onTap: toggledLike),
+                  const SizedBox(
+                    height: 5,
+                  ),
 // like count
-              Text(
-                widget.likes.length.toString(),
-                style: TextStyle(color: Colors.grey[700]),
+                  Text(
+                    widget.likes.length.toString(),
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(width: 10,),
-// comentario
-                Column(
-            children: [
-// comment button
-             CommentButton(onTap: showCommentDialog),
               const SizedBox(
-                height: 5,
+                width: 10,
               ),
+// comentario
+              Column(
+                children: [
+// comment button
+                  CommentButton(onTap: showCommentDialog),
+                  const SizedBox(
+                    height: 5,
+                  ),
 // comment count
-              Text(
-                widget.likes.length.toString(),
-                style: TextStyle(color: Colors.grey[700]),
+                  Text(
+                    widget.likes.length.toString(),
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                ],
               ),
             ],
           ),
-            ],
-          ),
+          const SizedBox(height: 20,),
 
           // comments
-          StreamBuilder<QuerySnapshot>(stream: FirebaseFirestore.instance.collection("User Post").doc(widget.postId).collection("Comments").orderBy("CommentTime", descending: true).snapshots(), builder:(context, snapshot) {
-            
-          },)
+          StreamBuilder<QuerySnapshot>(
+            // Cria um StreamBuilder que escuta alterações em uma coleção do Firestore.
+            stream: FirebaseFirestore.instance
+                .collection("User Post")
+                .doc(widget.postId)
+                .collection("Comments")
+                .orderBy("CommentTime",
+                    descending:
+                        true) // Ordena os comentários pelo campo "CommentTime" em ordem decrescente.
+                .snapshots(), // Escuta as alterações na coleção e fornece um stream de dados.
+            builder: (context, snapshot) {
+              // O builder constrói a interface com base no estado do snapshot.
+              // Mostra um círculo de carregamento enquanto os dados estão sendo carregados.
+              if (!snapshot.hasData) {
+                return Center(
+                  child:
+                      CircularProgressIndicator(), // Mostra um indicador de progresso centralizado.
+                );
+              }
+
+              // Retorna uma ListView com os comentários carregados.
+              return ListView(
+                shrinkWrap:
+                    true, // Reduz o tamanho da ListView ao mínimo necessário.
+                physics:
+                    const NeverScrollableScrollPhysics(), // Desativa a rolagem da ListView.
+                children: snapshot.data!.docs.map((doc) {
+                  // Mapeia cada documento (comentário) retornado.
+                  // Obtém os dados do comentário como um mapa.
+                  final commentData = doc.data() as Map<String, dynamic>;
+
+                  // Retorna o widget de comentário com os dados formatados.
+                  return Comment(
+                      text: commentData["CommentText"], // Texto do comentário.
+                      user: commentData[
+                          "CommentedBy"], // Usuário que fez o comentário.
+                      time: formatDate(commentData[
+                          "CommentTime"]) // Formata o tempo do comentário.
+                      );
+                }).toList(), // Converte o Iterable em uma lista.
+              );
+            },
+          )
         ],
       ),
     );

@@ -1,7 +1,9 @@
 import 'package:app_base/components/comment.dart';
 import 'package:app_base/components/comment_button.dart';
+import 'package:app_base/components/delete_button.dart';
 import 'package:app_base/components/like_button.dart';
 import 'package:app_base/helper/helper_methods.dart';
+import 'package:app_base/pages/comments_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -14,13 +16,15 @@ class LeticiaLindaPost extends StatefulWidget {
   final String time;
   final String postId;
   final List<String> likes;
+  final QueryDocumentSnapshot<Map<String, dynamic>> teste;
 
   const LeticiaLindaPost(
       {super.key,
       required this.message,
       required this.user,
       required this.postId,
-      required this.likes, required this.time});
+      required this.likes,
+      required this.time, required this.teste});
 
   @override
   State<LeticiaLindaPost> createState() => _LeticiaLindaPostState();
@@ -67,51 +71,64 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
     }
   }
 
+void Comment(){
+
+}
+
 // adicionar comentario
-  void addComment(String commentText) {
-    FirebaseFirestore.instance
-        .collection("User Post")
-        .doc(widget.postId)
-        .collection('Comments')
-        .add({
-      "CommentText": commentText,
-      "CommentedBy": currentUser.email,
-      "CommentTime": Timestamp.now() //lembrar de formatar no dispray
-    });
-  }
+ 
+ void deletePost() {
+  // Exibe o diálogo de confirmação antes de deletar o post
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text("Deletar post"),
+      content: const Text("Você tem certeza que quer deletar sua postagem?"),
+      actions: [
+        // Botão de cancelar
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text("Cancelar"),
+        ),
+        // Botão de deletar
+        TextButton(
+          onPressed: () async {
+            // Exclui os comentários primeiro no Firebase
+            final commentDocs = await FirebaseFirestore.instance
+                .collection("User Post")
+                .doc(widget.postId)
+                .collection("Comments")
+                .get();
 
-// show a dialog box
-  void showCommentDialog() {
-    showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: Text("Adicionar comentario"),
-              content: TextField(
-                controller: _commentTextController,
-                decoration:
-                    InputDecoration(hintText: "Escreva um comentário..."),
-              ),
-              actions: [
-                // cancel button
-                TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
+            for (var doc in commentDocs.docs) {
+              await FirebaseFirestore.instance
+                  .collection("User Post")
+                  .doc(widget.postId)
+                  .collection("Comments")
+                  .doc(doc.id)
+                  .delete();
+            }
 
-                      _commentTextController.clear();
-                     
-                    },
-                    child: Text("Cancelar")),
-                // save button
-                TextButton(
-                    onPressed: () {
-                       Navigator.pop(context);
-                      addComment(_commentTextController.text);
-                      _commentTextController.clear();
-                    },
-                    child: Text("Postar")),
-              ],
-            ));
-  }
+            // Após excluir os comentários, exclua o post
+            await FirebaseFirestore.instance
+                .collection("User Post")
+                .doc(widget.postId)
+                .delete()
+                .then((value) {
+              print("Post deletado");
+              // Saia do diálogo após a exclusão do post
+              Navigator.pop(context);
+            }).catchError((error) {
+              print("Falha ao deletar o post: $error");
+            });
+          },
+          child: Text("Deletar"),
+        ),
+      ],
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -124,20 +141,40 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // mensagem e email do usuario
-          Column(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.message),
-              SizedBox(
-                height: 5,
+              // grupo de texto (message + user email)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.message),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        widget.user,
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
+                      Text(
+                        " * ",
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
+                      Text(
+                        widget.time,
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
+                    ],
+                  )
+                ],
               ),
-              Row(
-          children: [
-            Text(widget.user, style: TextStyle(color: Colors.grey[400]),),
-            Text(" * ", style: TextStyle(color: Colors.grey[400]),),
-            Text(widget.time, style: TextStyle(color: Colors.grey[400]),),
-          ],
-        )
+              // so o dono do post consegue deletar o post
+
+              if (widget.user == currentUser.email)
+                DeleteButton(onTap: deletePost)
             ],
           ),
           SizedBox(
@@ -169,65 +206,66 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
               Column(
                 children: [
 // comment button
-                  CommentButton(onTap: showCommentDialog),
+                  CommentButton(onTap: (){
+                          Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => CommentsPage(
+      postId: widget.postId, 
+      user: widget.user, 
+      time: widget.time, 
+      message: widget.message,
+    ),
+  ),
+);
+                  }),
                   const SizedBox(
                     height: 5,
                   ),
 // comment count
-                  Text(
-                    widget.likes.length.toString(),
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
+StreamBuilder(
+  // Define o fluxo de dados que o StreamBuilder irá escutar
+  stream: FirebaseFirestore.instance
+      .collection("User Post") // Acessa a coleção chamada "User Post"
+      .doc(widget.postId)
+      .collection("Comments")
+      .snapshots(), // Retorna um fluxo de atualizações em tempo real
+  builder: (context, snapshot) {
+    // Verifica se o snapshot contém dados
+    if (snapshot.hasData) {
+      // Conta o número de comentários (documentos na coleção "Comments")
+      int commentCount = snapshot.data!.docs.length;
+
+     
+          return Text(
+           "$commentCount",
+           style: TextStyle(color: Colors.grey[700]),
+                  );
+        
+      
+    } else if (snapshot.hasError) {
+      return Center(
+        child: Text("Erro: ${snapshot.error.toString()}"),
+      );
+    }
+    return const Center(
+      child: CircularProgressIndicator(), // Exibe um loading enquanto os dados estão sendo carregados
+    );
+  },
+),
+
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 20,),
+          const SizedBox(
+            height: 20,
+          ),
 
           // comments
-          StreamBuilder<QuerySnapshot>(
-            // Cria um StreamBuilder que escuta alterações em uma coleção do Firestore.
-            stream: FirebaseFirestore.instance
-                .collection("User Post")
-                .doc(widget.postId)
-                .collection("Comments")
-                .orderBy("CommentTime",
-                    descending:
-                        true) // Ordena os comentários pelo campo "CommentTime" em ordem decrescente.
-                .snapshots(), // Escuta as alterações na coleção e fornece um stream de dados.
-            builder: (context, snapshot) {
-              // O builder constrói a interface com base no estado do snapshot.
-              // Mostra um círculo de carregamento enquanto os dados estão sendo carregados.
-              if (!snapshot.hasData) {
-                return Center(
-                  child:
-                      CircularProgressIndicator(), // Mostra um indicador de progresso centralizado.
-                );
-              }
+    
 
-              // Retorna uma ListView com os comentários carregados.
-              return ListView(
-                shrinkWrap:
-                    true, // Reduz o tamanho da ListView ao mínimo necessário.
-                physics:
-                    const NeverScrollableScrollPhysics(), // Desativa a rolagem da ListView.
-                children: snapshot.data!.docs.map((doc) {
-                  // Mapeia cada documento (comentário) retornado.
-                  // Obtém os dados do comentário como um mapa.
-                  final commentData = doc.data() as Map<String, dynamic>;
-
-                  // Retorna o widget de comentário com os dados formatados.
-                  return Comment(
-                      text: commentData["CommentText"], // Texto do comentário.
-                      user: commentData[
-                          "CommentedBy"], // Usuário que fez o comentário.
-                      time: formatDate(commentData[
-                          "CommentTime"]) // Formata o tempo do comentário.
-                      );
-                }).toList(), // Converte o Iterable em uma lista.
-              );
-            },
-          )
+        
         ],
       ),
     );

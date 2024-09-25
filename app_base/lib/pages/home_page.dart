@@ -101,13 +101,18 @@ class _HomePageState extends State<HomePage> {
                       itemBuilder: (context, index) {
                         // Obtém o documento do índice atual da lista de documentos
                         final post = snapshot.data!.docs[index];
+                    
+                        print(post);
+             
                         return LeticiaLindaPost(
                           message: post['Message'],
                           user: post["UserEmail"],
                           postId: post.id,
                           likes: List<String>.from(post['Likes'] ?? []),
                           time:formatDate( post["TimeStamp"]),
+                          teste: post,
                         );
+                    
                         // O retorno do widget para cada item da lista deve ser definido aqui
                       },
                     );
@@ -129,6 +134,7 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 children: [
                   // textfield
+                
                   Expanded(
                       child: MyTextField(
                           controller: textController,

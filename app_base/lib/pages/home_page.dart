@@ -89,11 +89,18 @@ class _HomePageState extends State<HomePage> {
       postData['FileURL'] = fileUrl;
     }
 
+<<<<<<< HEAD
     // Salva os dados no Firestore
     FirebaseFirestore.instance.collection("User Post").add(postData).then((_) {
       print('Mensagem postada com sucesso!');
     }).catchError((error) {
       print('Erro ao postar a mensagem: $error');
+=======
+    // limpar textFieldRTHTEHH
+
+    setState(() {
+      textController.clear();
+>>>>>>> 490aa8716c4888bbafffef5397703fbf9deb57cd
     });
   }
 

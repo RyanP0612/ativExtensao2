@@ -27,102 +27,150 @@ class _HomePageState extends State<HomePage> {
   // text controller
   final textController = TextEditingController();
 
+  bool ArquivoEscolhido = false;
+
   File? _selectedFile; // Armazena o arquivo selecionado
   String? _selectedFileName; // Armazena o nome do arquivo
+  double _teste = 0;
+
+  void _refresh() {
+    _teste = _teste;
+  }
+
+  void initState() {
+    _refresh();
+    super.initState();
+  }
 
   void signOut() {
     FirebaseAuth.instance.signOut();
   }
 
-  void selecionarArquivo() {
-    FilePicker.platform.pickFiles().then((result) {
-      if (result != null) {
-        _selectedFile = File(result.files.single.path!);
-        _selectedFileName = result.files.single.name;
 
-        // Exibe uma mensagem confirmando o arquivo selecionado
-        print('Arquivo selecionado: $_selectedFileName');
-      } else {
-        // Se nenhum arquivo foi selecionado
-        print('Nenhum arquivo selecionado');
-      }
-    }).catchError((error) {
-      print('Erro ao selecionar o arquivo: $error');
-    });
-  }
 
-  // post message
+// Função para mostrar o Bottom Sheet
+void _showPicker(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        height: 200, // Altura do Bottom Sheet
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              leading: Icon(Icons.camera),
+              title: Text('Câmera'),
+              onTap: () {
+                _selectImageOrVideo(ImageSource.camera);
+                Navigator.of(context).pop(); // Fecha o Bottom Sheet
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.photo),
+              title: Text('Galeria'),
+              onTap: () {
+                _selectImageOrVideo(ImageSource.gallery);
+                Navigator.of(context).pop(); // Fecha o Bottom Sheet
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.exit_to_app),
+              title: Text('Sair'),
+              onTap: () {
+                Navigator.of(context).pop(); // Fecha o Bottom Sheet
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
-  void postMessage() {
-    if (textController.text.isNotEmpty) {
-      if (_selectedFile != null) {
-        // Se houver um arquivo selecionado, faça o upload para o Firebase Storage
-        String fileName = _selectedFileName!;
+// Função para selecionar imagem ou vídeo
+Future<void> _selectImageOrVideo(ImageSource source) async {
+  final ImagePicker _picker = ImagePicker();
+  
+  // Seleciona o arquivo com base na fonte escolhida
+  final pickedFile = await _picker.pickImage(source: source);
+  
+  if (pickedFile != null) {
+    _selectedFile = File(pickedFile.path);
+    _selectedFileName = pickedFile.name;
 
-        Reference ref =
-            FirebaseStorage.instance.ref().child('uploads/$fileName');
-        ref.putFile(_selectedFile!).then((snapshot) {
-          // Após o upload, obtenha a URL de download
-          snapshot.ref.getDownloadURL().then((fileUrl) {
-            _salvarNoFirestore(fileUrl); // Salva o post com a URL do arquivo
-          });
-        });
-      } else {
-        // Se não houver arquivo, salva apenas a mensagem de texto
-        _salvarNoFirestore(null);
-      }
-    } else {
-      print('Campo de texto vazio. Não é possível postar.');
-    }
-  }
-
-  void _salvarNoFirestore(String? fileUrl) {
-    Map<String, dynamic> postData = {
-      "UserEmail": currentUser.email,
-      "Message": textController.text,
-      "TimeStamp": Timestamp.now(),
-      'Likes': [],
-    };
-
-    // Se houver uma URL de arquivo, adicione-a ao Firestore
-    if (fileUrl != null) {
-      postData['FileURL'] = fileUrl;
-    }
-
-<<<<<<< HEAD
-    // Salva os dados no Firestore
-    FirebaseFirestore.instance.collection("User Post").add(postData).then((_) {
-      print('Mensagem postada com sucesso!');
-    }).catchError((error) {
-      print('Erro ao postar a mensagem: $error');
-=======
-    // limpar textFieldRTHTEHH
-
+    // Exibe uma mensagem confirmando o arquivo selecionado
+    print('Arquivo selecionado: $_selectedFileName');
     setState(() {
-      textController.clear();
->>>>>>> 490aa8716c4888bbafffef5397703fbf9deb57cd
+         ArquivoEscolhido = true; // Atualiza o estado do arquivo escolhido
     });
+ 
+    // Aqui você pode chamar setState se necessário
+  } else {
+    // Se nenhum arquivo foi selecionado
+    print('Nenhum arquivo selecionado');
+  }
+}
+
+// Função para postar a mensagem
+void postMessage() {
+  if (textController.text.isNotEmpty) {
+    if (_selectedFile != null) {
+      // Se houver um arquivo selecionado, faça o upload para o Firebase Storage
+      String fileName = _selectedFileName!;
+
+      // Adiciona um timestamp para garantir nomes de arquivos únicos
+      Reference ref = FirebaseStorage.instance
+          .ref()
+          .child('uploads/${fileName}_${Timestamp.now().millisecondsSinceEpoch}');
+      
+      ref.putFile(_selectedFile!).then((snapshot) {
+        // Após o upload, obtenha a URL de download
+        snapshot.ref.getDownloadURL().then((fileUrl) {
+          // Salva o post com a URL do arquivo no Firestore
+          _salvarNoFirestore(fileUrl);
+        });
+      }).catchError((error) {
+        print('Erro ao fazer upload do arquivo: $error');
+      });
+    } else {
+      // Se não houver arquivo, salva apenas a mensagem de texto
+      _salvarNoFirestore(null);
+    }
+  } else {
+    print('Campo de texto vazio. Não é possível postar.');
+  }
+}
+
+// Função para salvar os dados no Firestore
+void _salvarNoFirestore(String? fileUrl) {
+  Map<String, dynamic> postData = {
+    "UserEmail": currentUser.email,
+    "Message": textController.text,
+    "TimeStamp": Timestamp.now(),
+    'Likes': [],
+  };
+
+  // Se houver uma URL de arquivo, adicione-a ao Firestore
+  if (fileUrl != null) {
+    postData['FileURL'] = fileUrl;
   }
 
-  void selecionarImagemOuVideo() {
-    final ImagePicker _picker = ImagePicker();
-
-    _picker.pickImage(source: ImageSource.gallery).then((pickedFile) {
-      if (pickedFile != null) {
-        // Exibe o caminho do arquivo selecionado
-        print('Arquivo selecionado: ${pickedFile.path}');
-      } else {
-        // Se nenhum arquivo foi selecionado
-        print('Nenhum arquivo selecionado');
-      }
-    }).catchError((error) {
-      print('Erro ao selecionar o arquivo: $error');
-    });
-
+  // Salva os dados no Firestore
+  FirebaseFirestore.instance.collection("User Post").add(postData).then((_) {
+    // Limpa os campos e atualiza o estado após salvar
     _selectedFile = null;
     _selectedFileName = '';
     textController.clear();
-  }
+    setState(() {
+      ArquivoEscolhido = false; // Reseta o estado do arquivo escolhido
+    });
+    print('Post salvo com sucesso no Firestore.');
+  }).catchError((error) {
+    print('Erro ao salvar o post no Firestore: $error');
+  });
+}
+
+
 
   void goToProfilePage() {
     Navigator.pop(context);
@@ -159,49 +207,46 @@ class _HomePageState extends State<HomePage> {
 
             Expanded(
               child: StreamBuilder(
-                // Define o fluxo de dados que o StreamBuilder irá escutar
-                stream: FirebaseFirestore.instance
-                    .collection(
-                        "User Post") // Acessa a coleção chamada "User Posts" no Firestore
-                    .orderBy("TimeStamp",
-                        descending:
-                            false) // Ordena os documentos pelo campo "Timestamp" em ordem crescente
-                    .snapshots(), // Retorna um fluxo de atualizações em tempo real
-                builder: (context, snapshot) {
-                  // Verifica se o snapshot contém dados
-                  if (snapshot.hasData) {
-                    return ListView.builder(
-                      // tira o erro que da toda hora kkk
-                      itemCount: snapshot.data!.docs.length,
-                      // Cria uma lista de itens de forma eficiente
-                      itemBuilder: (context, index) {
-                        // Obtém o documento do índice atual da lista de documentos
-                        final post = snapshot.data!.docs[index];
+  // Define o fluxo de dados que o StreamBuilder irá escutar
+  stream: FirebaseFirestore.instance
+      .collection("User Post") // Acessa a coleção chamada "User Posts"
+      .orderBy("TimeStamp", descending: false) // Ordena pelo campo "TimeStamp" em ordem crescente
+      .snapshots(), // Retorna um fluxo de atualizações em tempo real
+  builder: (context, snapshot) {
+    // Verifica se o snapshot contém dados
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    if (snapshot.hasError) {
+      return Center(child: Text("Erro: ${snapshot.error.toString()}"));
+    }
 
-                        print(post);
+    if (snapshot.hasData) {
+      return ListView.builder(
+        itemCount: snapshot.data!.docs.length, // Conta o número de documentos
+        itemBuilder: (context, index) {
+          // Obtém o documento do índice atual
+          final post = snapshot.data!.docs[index];
+          print(post); // Log do documento
 
-                        return LeticiaLindaPost(
-                          message: post['Message'],
-                          user: post["UserEmail"],
-                          postId: post.id,
-                          likes: List<String>.from(post['Likes'] ?? []),
-                          time: formatDate(post["TimeStamp"]),
-                          teste: post,
-                        );
+          return LeticiaLindaPost(
+            message: post['Message'],
+            user: post["UserEmail"],
+            postId: post.id,
+            likes: List<String>.from(post['Likes'] ?? []), // Converte Likes para uma lista de Strings
+            time: formatDate(post["TimeStamp"]), // Formata o timestamp
+            fileURL: post.data().containsKey('FileURL') ? post['FileURL'] : null, // Verifica a existência da chave
+          );
+        },
+      );
+    }
 
-                        // O retorno do widget para cada item da lista deve ser definido aqui
-                      },
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text("Erro: ${snapshot.error.toString()}"),
-                    );
-                  }
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                },
-              ),
+    // Retorna um indicador de progresso se nada mais se aplicar
+    return const Center(child: CircularProgressIndicator());
+  },
+),
+
             ),
 
             // post mensagem
@@ -214,14 +259,14 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                       child: MyTextField(
                           controller: textController,
-                          hintText: "Escreva algo...",
+                          hintText: ArquivoEscolhido ? "Escreva algo com seu arquivo..." : "Escreva algo...",
                           obscureText: false)),
 
                   //  postbutton
                   IconButton(
-                      onPressed: selecionarArquivo,
-                      icon: _selectedFile != null
-                          ? Icon(Icons.image_aspect_ratio)
+                      onPressed:() => _showPicker(context),
+                      icon: ArquivoEscolhido
+                          ? Icon(Icons.photo_library)
                           : Icon(Icons.image)),
                   IconButton(
                       onPressed: postMessage,

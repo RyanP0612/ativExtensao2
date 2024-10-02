@@ -7,6 +7,7 @@ import 'package:app_base/pages/comments_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -16,7 +17,7 @@ class LeticiaLindaPost extends StatefulWidget {
   final String time;
   final String postId;
   final List<String> likes;
-  final QueryDocumentSnapshot<Map<String, dynamic>> teste;
+  final String? fileURL;
 
   const LeticiaLindaPost(
       {super.key,
@@ -24,7 +25,7 @@ class LeticiaLindaPost extends StatefulWidget {
       required this.user,
       required this.postId,
       required this.likes,
-      required this.time, required this.teste});
+      required this.time,  this.fileURL});
 
   @override
   State<LeticiaLindaPost> createState() => _LeticiaLindaPostState();
@@ -92,38 +93,60 @@ void Comment(){
         ),
         // Botão de deletar
         TextButton(
-          onPressed: () async {
-            // Exclui os comentários primeiro no Firebase
-            final commentDocs = await FirebaseFirestore.instance
-                .collection("User Post")
-                .doc(widget.postId)
-                .collection("Comments")
-                .get();
+  onPressed: () async {
+    try {
+      // Primeiro, obtém os dados do post para verificar se há uma imagem associada
+      final postDoc = await FirebaseFirestore.instance
+          .collection("User Post")
+          .doc(widget.postId)
+          .get();
 
-            for (var doc in commentDocs.docs) {
-              await FirebaseFirestore.instance
-                  .collection("User Post")
-                  .doc(widget.postId)
-                  .collection("Comments")
-                  .doc(doc.id)
-                  .delete();
-            }
+      // Se o post contém uma URL de imagem, exclua a imagem no Firebase Storage
+      if (postDoc.exists && postDoc.data() != null) {
+        final postData = postDoc.data() as Map<String, dynamic>;
+        if (postData.containsKey('FileURL') && postData['FileURL'] != null) {
+          final fileUrl = postData['FileURL'] as String;
 
-            // Após excluir os comentários, exclua o post
-            await FirebaseFirestore.instance
-                .collection("User Post")
-                .doc(widget.postId)
-                .delete()
-                .then((value) {
-              print("Post deletado");
-              // Saia do diálogo após a exclusão do post
-              Navigator.pop(context);
-            }).catchError((error) {
-              print("Falha ao deletar o post: $error");
-            });
-          },
-          child: Text("Deletar"),
-        ),
+          // Referência para a imagem no Firebase Storage
+          final ref = FirebaseStorage.instance.refFromURL(fileUrl);
+
+          // Exclui a imagem do Storage
+          await ref.delete();
+          print("Imagem excluída do Firebase Storage.");
+        }
+      }
+
+      // Exclui os comentários do post no Firestore
+      final commentDocs = await FirebaseFirestore.instance
+          .collection("User Post")
+          .doc(widget.postId)
+          .collection("Comments")
+          .get();
+
+      for (var doc in commentDocs.docs) {
+        await FirebaseFirestore.instance
+            .collection("User Post")
+            .doc(widget.postId)
+            .collection("Comments")
+            .doc(doc.id)
+            .delete();
+      }
+
+      // Após excluir os comentários, exclua o post no Firestore
+      await FirebaseFirestore.instance
+          .collection("User Post")
+          .doc(widget.postId)
+          .delete();
+
+      print("Post e comentários deletados com sucesso.");
+      Navigator.pop(context); // Fecha o diálogo após a exclusão
+    } catch (error) {
+      print("Erro ao deletar post ou imagem: $error");
+    }
+  },
+  child: Text("Deletar"),
+),
+
       ],
     ),
   );
@@ -150,6 +173,11 @@ void Comment(){
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.message),
+                  widget.fileURL != null ? Row(
+                    children: [
+                      Container( width: MediaQuery.sizeOf(context).width / 1.5, child: Image.network(widget.fileURL!, fit: BoxFit.fill,),),
+                    ],
+                  ) : SizedBox(width: 0,),
                   SizedBox(
                     height: 5,
                   ),

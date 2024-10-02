@@ -3,8 +3,7 @@ import 'package:app_base/auth/login_or_register.dart';
 import 'package:app_base/firebase_options.dart';
 import 'package:app_base/pages/login_page.dart';
 import 'package:app_base/pages/register_page.dart';
-import 'package:app_base/theme/dark_theme.dart';
-import 'package:app_base/theme/light_theme.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';

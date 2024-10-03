@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:app_base/components/text_box.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -17,6 +21,134 @@ final currentUser = FirebaseAuth.instance.currentUser!;
 
 // Referência para a coleção "Users" no Firestore, onde os documentos dos usuários são armazenados
 final userCollection = FirebaseFirestore.instance.collection("Users");
+
+
+  bool ArquivoEscolhido = false;
+
+  File? _selectedFile; // Armazena o arquivo selecionado
+  String? _selectedFileName; // Armazena o nome do arquivo
+  double _teste = 0;
+
+  void _refresh() {
+    _teste = _teste;
+  }
+
+  void initState() {
+    _refresh();
+    super.initState();
+  }
+
+void _showPicker(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return Container(
+        height: 200, // Altura do Bottom Sheet
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              leading: Icon(Icons.camera),
+              title: Text('Câmera'),
+              onTap: () {
+                _selectImageOrVideo(ImageSource.camera);
+                Navigator.of(context).pop(); // Fecha o Bottom Sheet
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.photo),
+              title: Text('Galeria'),
+              onTap: () {
+                _selectImageOrVideo(ImageSource.gallery);
+                Navigator.of(context).pop(); // Fecha o Bottom Sheet
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.exit_to_app),
+              title: Text('Sair'),
+              onTap: () {
+                Navigator.of(context).pop(); // Fecha o Bottom Sheet
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+
+// Função para selecionar imagem ou vídeo
+Future<void> _selectImageOrVideo(ImageSource source) async {
+  final ImagePicker _picker = ImagePicker();
+  
+  // Seleciona o arquivo com base na fonte escolhida
+  final pickedFile = await _picker.pickImage(source: source);
+  
+  if (pickedFile != null) {
+    _selectedFile = File(pickedFile.path);
+    _selectedFileName = pickedFile.name;
+
+    // Exibe uma mensagem confirmando o arquivo selecionado
+    print('Arquivo selecionado: $_selectedFileName');
+    
+    setState(() {
+         ArquivoEscolhido = true; // Atualiza o estado do arquivo escolhido
+    postMessage();
+    });
+ 
+    // Aqui você pode chamar setState se necessário
+  } else {
+    // Se nenhum arquivo foi selecionado
+    print('Nenhum arquivo selecionado');
+  }
+}
+
+void postMessage() {
+  
+    if (_selectedFile != null) {
+      // Se houver um arquivo selecionado, faça o upload para o Firebase Storage
+      String fileName = _selectedFileName!;
+
+      // Adiciona um timestamp para garantir nomes de arquivos únicos
+      Reference ref = FirebaseStorage.instance
+          .ref()
+          .child('uploads/${fileName}_${Timestamp.now().millisecondsSinceEpoch}');
+      
+      ref.putFile(_selectedFile!).then((snapshot) {
+        // Após o upload, obtenha a URL de download
+        snapshot.ref.getDownloadURL().then((fileUrl) {
+          // Salva o post com a URL do arquivo no Firestore
+          editProfilePhoto(fileUrl);
+        });
+      }).catchError((error) {
+        print('Erro ao fazer upload do arquivo: $error');
+      });
+    } else {
+      // Se não houver arquivo, salva apenas a mensagem de texto
+      print("nao selecionado");
+    }
+
+}
+
+
+ Future<void> editProfilePhoto(String fileUrl) async {
+    print("Tentando salvar a URL no Firestore...");
+    int attempts = 0;
+    while (attempts < 3) {
+      try {
+        await userCollection.doc(currentUser.email).set(
+          {"FileURL": fileUrl},
+          SetOptions(merge: true),
+        );
+        print("URL do arquivo salva com sucesso!");
+        break; // Sai do loop em caso de sucesso
+      } catch (e) {
+        print("Erro ao salvar a URL no Firestore: $e");
+        attempts++;
+        await Future.delayed(Duration(seconds: 1)); // Espera 1 segundo antes de tentar novamente
+      }
+    }
+  }
 
 // Função assíncrona que edita um campo específico de um documento no Firestore
 Future<void> editField(String field) async {
@@ -76,9 +208,11 @@ Future<void> editField(String field) async {
   if (newValue.trim().length > 0) {
     // Faz um update no documento do usuário no Firestore
     // O campo especificado (passado como argumento) é atualizado com o novo valor
-    await userCollection.doc(currentUser.email).update({field: newValue});
+    await userCollection.doc(currentUser.email).update({field: newValue}, );
   }
 }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -111,9 +245,19 @@ if(snapshot.hasData){
             height: 50,
           ),
           // foto de perfil
-          Icon(
-            Icons.person,
-            size: 72,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+                     IconButton(onPressed: (){}, icon: Icon(Icons.settings,  color: Colors.transparent,), style: ButtonStyle(
+    overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove efeito de clique
+  ),),
+              Icon(
+                Icons.person,
+                size: 72,
+              ),
+          IconButton(onPressed: ()=> _showPicker(context), icon: Icon(Icons.settings,  color: Colors.grey[400],))
+            ],
           ),
           const SizedBox(
             height: 10,
@@ -158,6 +302,65 @@ if(snapshot.hasData){
               style: TextStyle(color: Colors.grey[600]),
             ),
           ),
+          
+StreamBuilder<DocumentSnapshot>(
+  stream: userCollection.doc(currentUser.email).snapshots(),
+  builder: (context, snapshot) {
+    if (!snapshot.hasData) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    // Verifica se o documento existe
+    if (!snapshot.data!.exists) {
+      return Center(
+        child: Text(
+          "Documento não encontrado",
+          style: TextStyle(color: Colors.grey[500]),
+        ),
+      );
+    }
+
+    // Obtém os dados do documento
+    var userData = snapshot.data!.data() as Map<String, dynamic>;
+
+    // Verifica se há comentários (ou outros dados que você deseja exibir)
+    if (userData['FileURL'] == null) {
+      return Center(
+        child: Text(
+          "Nenhum comentário ainda",
+          style: TextStyle(color: Colors.grey[500]),
+        ),
+      );
+    }
+
+    // Exibe a lista de comentários
+   
+    return Padding(
+      padding:  EdgeInsets.all(MediaQuery.of(context).size.height * 0.2), // Ajuste o padding conforme necessário
+      child: ClipOval(
+        child: Container(
+        height: MediaQuery.of(context).size.height / 13,
+          decoration: BoxDecoration(
+            
+          ),
+          constraints: BoxConstraints(
+            minHeight: 60
+
+          ),
+          child: Image.network(
+            userData['FileURL'],
+            fit: BoxFit.cover, // Preenche todo o espaço do container
+            errorBuilder: (context, error, stackTrace) {
+              return Center(child: Icon(Icons.error)); // Ícone de erro se a imagem não carregar
+            },
+          ),
+        ),
+      ),
+    );
+  },
+
+
+                ),
         ],
       );
 

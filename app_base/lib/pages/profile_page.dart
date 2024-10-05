@@ -24,7 +24,7 @@ final userCollection = FirebaseFirestore.instance.collection("Users");
 
 
   bool ArquivoEscolhido = false;
-
+  String username = "";
   File? _selectedFile; // Armazena o arquivo selecionado
   String? _selectedFileName; // Armazena o nome do arquivo
   double _teste = 0;
@@ -221,7 +221,7 @@ Future<void> editField(String field) async {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          "Perfil",
+          "Perfil de ${username}",
           style: TextStyle(color: Colors.grey[300]),
         ),
         backgroundColor: Colors.grey[900],
@@ -238,6 +238,7 @@ builder: (context, snapshot) {
 // get user data
 if(snapshot.hasData){
   final userData = snapshot.data!.data() as Map<String, dynamic>;
+  username = userData["username"];
   return
   ListView(
         children: [
@@ -252,11 +253,61 @@ if(snapshot.hasData){
                      IconButton(onPressed: (){}, icon: Icon(Icons.settings,  color: Colors.transparent,), style: ButtonStyle(
     overlayColor: WidgetStateProperty.all(Colors.transparent), // Remove efeito de clique
   ),),
-              Icon(
-                Icons.person,
-                size: 72,
-              ),
-          IconButton(onPressed: ()=> _showPicker(context), icon: Icon(Icons.settings,  color: Colors.grey[400],))
+              SizedBox(
+  width: 72,
+  height: 72,
+  child: StreamBuilder<DocumentSnapshot>(
+    stream: userCollection.doc(currentUser.email).snapshots(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return Center(child: CircularProgressIndicator());
+      }
+  
+      // Verifica se o documento existe
+      if (!snapshot.data!.exists) {
+        return Center(
+          child: Icon(Icons.person, size: 72,)
+        );
+      }
+  
+      // Obtém os dados do documento
+      var userData = snapshot.data!.data() as Map<String, dynamic>;
+  
+      // Verifica se há comentários (ou outros dados que você deseja exibir)
+      if (userData['FileURL'] == null) {
+        return Center(
+          child: Icon(Icons.person, size: 72,)
+        );
+      }
+  
+      // Exibe a lista de comentários
+     
+      return ClipOval(
+          child: Container(
+       
+            decoration: BoxDecoration(
+              
+            ),
+            constraints: BoxConstraints(
+              minHeight: 60
+  
+            ),
+            child: Image.network(
+              userData['FileURL'],
+              fit: BoxFit.cover, // Preenche todo o espaço do container
+              errorBuilder: (context, error, stackTrace) {
+                return Center(child: Icon(Icons.error)); // Ícone de erro se a imagem não carregar
+              },
+            ),
+          ),
+        
+      );
+    },
+  
+  
+                  ),
+),
+          IconButton(onPressed: ()=> _showPicker(context), icon: Icon(Icons.edit,  color: Colors.grey[400],))
             ],
           ),
           const SizedBox(
@@ -294,6 +345,7 @@ if(snapshot.hasData){
           const SizedBox(
             height: 10,
           ),
+          
 
           Padding(
             padding: const EdgeInsets.only(left: 25.0),
@@ -303,64 +355,7 @@ if(snapshot.hasData){
             ),
           ),
           
-StreamBuilder<DocumentSnapshot>(
-  stream: userCollection.doc(currentUser.email).snapshots(),
-  builder: (context, snapshot) {
-    if (!snapshot.hasData) {
-      return Center(child: CircularProgressIndicator());
-    }
 
-    // Verifica se o documento existe
-    if (!snapshot.data!.exists) {
-      return Center(
-        child: Text(
-          "Documento não encontrado",
-          style: TextStyle(color: Colors.grey[500]),
-        ),
-      );
-    }
-
-    // Obtém os dados do documento
-    var userData = snapshot.data!.data() as Map<String, dynamic>;
-
-    // Verifica se há comentários (ou outros dados que você deseja exibir)
-    if (userData['FileURL'] == null) {
-      return Center(
-        child: Text(
-          "Nenhum comentário ainda",
-          style: TextStyle(color: Colors.grey[500]),
-        ),
-      );
-    }
-
-    // Exibe a lista de comentários
-   
-    return Padding(
-      padding:  EdgeInsets.all(MediaQuery.of(context).size.height * 0.2), // Ajuste o padding conforme necessário
-      child: ClipOval(
-        child: Container(
-        height: MediaQuery.of(context).size.height / 13,
-          decoration: BoxDecoration(
-            
-          ),
-          constraints: BoxConstraints(
-            minHeight: 60
-
-          ),
-          child: Image.network(
-            userData['FileURL'],
-            fit: BoxFit.cover, // Preenche todo o espaço do container
-            errorBuilder: (context, error, stackTrace) {
-              return Center(child: Icon(Icons.error)); // Ícone de erro se a imagem não carregar
-            },
-          ),
-        ),
-      ),
-    );
-  },
-
-
-                ),
         ],
       );
 

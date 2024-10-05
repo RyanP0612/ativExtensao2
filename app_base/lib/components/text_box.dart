@@ -26,7 +26,7 @@ class MyTextBox extends StatelessWidget {
               Text(sectionName, style: TextStyle(color: Colors.grey[600]),),
               // botao de edição
 
-              IconButton(onPressed: onPressed, icon: Icon(Icons.settings, color: Colors.grey[400],))
+              IconButton(onPressed: onPressed, icon: Icon(Icons.edit, color: Colors.grey[400],))
             ],
           ),
           // text

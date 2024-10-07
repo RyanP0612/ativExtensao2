@@ -14,8 +14,10 @@ import 'package:flutter/material.dart';
 class LeticiaLindaPost extends StatefulWidget {
   final String message;
   final String user;
+  final String? fileURLProfile;
   final String time;
   final String postId;
+  final String? username;
   final List<String> likes;
   final String? fileURL;
 
@@ -25,7 +27,10 @@ class LeticiaLindaPost extends StatefulWidget {
       required this.user,
       required this.postId,
       required this.likes,
-      required this.time,  this.fileURL});
+      required this.time,
+      this.fileURL,
+      this.fileURLProfile,
+      this.username});
 
   @override
   State<LeticiaLindaPost> createState() => _LeticiaLindaPostState();
@@ -72,86 +77,83 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
     }
   }
 
-void Comment(){
-
-}
+  void Comment() {}
 
 // adicionar comentario
- 
- void deletePost() {
-  // Exibe o diálogo de confirmação antes de deletar o post
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text("Deletar post"),
-      content: const Text("Você tem certeza que quer deletar sua postagem?"),
-      actions: [
-        // Botão de cancelar
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text("Cancelar"),
-        ),
-        // Botão de deletar
-        TextButton(
-  onPressed: () async {
-    try {
-      // Primeiro, obtém os dados do post para verificar se há uma imagem associada
-      final postDoc = await FirebaseFirestore.instance
-          .collection("User Post")
-          .doc(widget.postId)
-          .get();
 
-      // Se o post contém uma URL de imagem, exclua a imagem no Firebase Storage
-      if (postDoc.exists && postDoc.data() != null) {
-        final postData = postDoc.data() as Map<String, dynamic>;
-        if (postData.containsKey('FileURL') && postData['FileURL'] != null) {
-          final fileUrl = postData['FileURL'] as String;
+  void deletePost() {
+    // Exibe o diálogo de confirmação antes de deletar o post
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Deletar post"),
+        content: const Text("Você tem certeza que quer deletar sua postagem?"),
+        actions: [
+          // Botão de cancelar
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancelar"),
+          ),
+          // Botão de deletar
+          TextButton(
+            onPressed: () async {
+              try {
+                // Primeiro, obtém os dados do post para verificar se há uma imagem associada
+                final postDoc = await FirebaseFirestore.instance
+                    .collection("User Post")
+                    .doc(widget.postId)
+                    .get();
 
-          // Referência para a imagem no Firebase Storage
-          final ref = FirebaseStorage.instance.refFromURL(fileUrl);
+                // Se o post contém uma URL de imagem, exclua a imagem no Firebase Storage
+                if (postDoc.exists && postDoc.data() != null) {
+                  final postData = postDoc.data() as Map<String, dynamic>;
+                  if (postData.containsKey('FileURL') &&
+                      postData['FileURL'] != null) {
+                    final fileUrl = postData['FileURL'] as String;
 
-          // Exclui a imagem do Storage
-          await ref.delete();
-          print("Imagem excluída do Firebase Storage.");
-        }
-      }
+                    // Referência para a imagem no Firebase Storage
+                    final ref = FirebaseStorage.instance.refFromURL(fileUrl);
 
-      // Exclui os comentários do post no Firestore
-      final commentDocs = await FirebaseFirestore.instance
-          .collection("User Post")
-          .doc(widget.postId)
-          .collection("Comments")
-          .get();
+                    // Exclui a imagem do Storage
+                    await ref.delete();
+                    print("Imagem excluída do Firebase Storage.");
+                  }
+                }
 
-      for (var doc in commentDocs.docs) {
-        await FirebaseFirestore.instance
-            .collection("User Post")
-            .doc(widget.postId)
-            .collection("Comments")
-            .doc(doc.id)
-            .delete();
-      }
+                // Exclui os comentários do post no Firestore
+                final commentDocs = await FirebaseFirestore.instance
+                    .collection("User Post")
+                    .doc(widget.postId)
+                    .collection("Comments")
+                    .get();
 
-      // Após excluir os comentários, exclua o post no Firestore
-      await FirebaseFirestore.instance
-          .collection("User Post")
-          .doc(widget.postId)
-          .delete();
+                for (var doc in commentDocs.docs) {
+                  await FirebaseFirestore.instance
+                      .collection("User Post")
+                      .doc(widget.postId)
+                      .collection("Comments")
+                      .doc(doc.id)
+                      .delete();
+                }
 
-      print("Post e comentários deletados com sucesso.");
-      Navigator.pop(context); // Fecha o diálogo após a exclusão
-    } catch (error) {
-      print("Erro ao deletar post ou imagem: $error");
-    }
-  },
-  child: Text("Deletar"),
-),
+                // Após excluir os comentários, exclua o post no Firestore
+                await FirebaseFirestore.instance
+                    .collection("User Post")
+                    .doc(widget.postId)
+                    .delete();
 
-      ],
-    ),
-  );
-}
-
+                print("Post e comentários deletados com sucesso.");
+                Navigator.pop(context); // Fecha o diálogo após a exclusão
+              } catch (error) {
+                print("Erro ao deletar post ou imagem: $error");
+              }
+            },
+            child: Text("Deletar"),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -172,12 +174,59 @@ void Comment(){
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.message),
-                  widget.fileURL != null ? Row(
+                  Row(
                     children: [
-                      Container( width: MediaQuery.sizeOf(context).width / 1.5, child: Image.network(widget.fileURL!, fit: BoxFit.fill,),),
+                      Center(
+                        child: ClipOval(
+                          child: Container(
+                              color: Colors.grey[300],
+                              height: 45,
+                              width: 45,
+                              child: widget.fileURLProfile != null
+                                  ? Image.network(
+                                      widget.fileURLProfile!,
+                                      fit: BoxFit
+                                          .cover, // Preenche todo o espaço do container
+                                    )
+                                  : Icon(
+                                      Icons.person,
+                                      size: 40,
+                                    )),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      widget.username != null
+                          ? Text(
+                              widget.username!,
+                              style: TextStyle(color: Colors.grey[800]),
+                            )
+                          : Text(
+                              widget.user.split('@')[0],
+                              style: TextStyle(color: Colors.grey[800]),
+                            )
                     ],
-                  ) : SizedBox(width: 0,),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Text(widget.message),
+                  widget.fileURL != null
+                      ? Row(
+                          children: [
+                            Container(
+                              width: MediaQuery.sizeOf(context).width / 1.5,
+                              child: Image.network(
+                                widget.fileURL!,
+                                fit: BoxFit.fill,
+                              ),
+                            ),
+                          ],
+                        )
+                      : SizedBox(
+                          width: 0,
+                        ),
                   SizedBox(
                     height: 5,
                   ),
@@ -234,54 +283,52 @@ void Comment(){
               Column(
                 children: [
 // comment button
-                  CommentButton(onTap: (){
-                          Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => CommentsPage(
-      postId: widget.postId, 
-      user: widget.user, 
-      time: widget.time, 
-      message: widget.message,
-    ),
-  ),
-);
+                  CommentButton(onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CommentsPage(
+                          postId: widget.postId,
+                          user: widget.user,
+                          time: widget.time,
+                          message: widget.message,
+                        ),
+                      ),
+                    );
                   }),
                   const SizedBox(
                     height: 5,
                   ),
 // comment count
-StreamBuilder(
-  // Define o fluxo de dados que o StreamBuilder irá escutar
-  stream: FirebaseFirestore.instance
-      .collection("User Post") // Acessa a coleção chamada "User Post"
-      .doc(widget.postId)
-      .collection("Comments")
-      .snapshots(), // Retorna um fluxo de atualizações em tempo real
-  builder: (context, snapshot) {
-    // Verifica se o snapshot contém dados
-    if (snapshot.hasData) {
-      // Conta o número de comentários (documentos na coleção "Comments")
-      int commentCount = snapshot.data!.docs.length;
+                  StreamBuilder(
+                    // Define o fluxo de dados que o StreamBuilder irá escutar
+                    stream: FirebaseFirestore.instance
+                        .collection(
+                            "User Post") // Acessa a coleção chamada "User Post"
+                        .doc(widget.postId)
+                        .collection("Comments")
+                        .snapshots(), // Retorna um fluxo de atualizações em tempo real
+                    builder: (context, snapshot) {
+                      // Verifica se o snapshot contém dados
+                      if (snapshot.hasData) {
+                        // Conta o número de comentários (documentos na coleção "Comments")
+                        int commentCount = snapshot.data!.docs.length;
 
-     
-          return Text(
-           "$commentCount",
-           style: TextStyle(color: Colors.grey[700]),
-                  );
-        
-      
-    } else if (snapshot.hasError) {
-      return Center(
-        child: Text("Erro: ${snapshot.error.toString()}"),
-      );
-    }
-    return const Center(
-      child: CircularProgressIndicator(), // Exibe um loading enquanto os dados estão sendo carregados
-    );
-  },
-),
-
+                        return Text(
+                          "$commentCount",
+                          style: TextStyle(color: Colors.grey[700]),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Text("Erro: ${snapshot.error.toString()}"),
+                        );
+                      }
+                      return const Center(
+                        child:
+                            CircularProgressIndicator(), // Exibe um loading enquanto os dados estão sendo carregados
+                      );
+                    },
+                  ),
                 ],
               ),
             ],
@@ -291,9 +338,6 @@ StreamBuilder(
           ),
 
           // comments
-    
-
-        
         ],
       ),
     );

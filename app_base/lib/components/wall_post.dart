@@ -39,6 +39,8 @@ class LeticiaLindaPost extends StatefulWidget {
 class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
   // user
   final currentUser = FirebaseAuth.instance.currentUser!;
+
+  final userCollection = FirebaseFirestore.instance.collection("Users");
   bool isLiked = false;
 
   final _commentTextController = TextEditingController();
@@ -158,6 +160,7 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
   @override
   Widget build(BuildContext context) {
     return Container(
+     
       decoration: BoxDecoration(
           color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
       margin: EdgeInsets.only(top: 25, left: 25, right: 25),
@@ -176,42 +179,109 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
                 children: [
                   Row(
                     children: [
-                      Center(
-                        child: ClipOval(
-                          child: Container(
-                              color: Colors.grey[300],
-                              height: 45,
-                              width: 45,
-                              child: widget.fileURLProfile != null
-                                  ? Image.network(
-                                      widget.fileURLProfile!,
+                       ClipOval(
+                         child: Container(
+                          color: Colors.grey[300],
+                            width:40,
+                            height:40,
+                            child: StreamBuilder<DocumentSnapshot>(
+                              stream: userCollection
+                                  .doc(widget.user)
+                                  .snapshots(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return Center(
+                                      child: CircularProgressIndicator());
+                                }
+                         
+                                // Obtém os dados do documento
+                                var userData =
+                                    snapshot.data!.data() as Map<String, dynamic>;
+                         
+                                // Verifica se há comentários (ou outros dados que você deseja exibir)
+                                if (userData['photoUrl'] == null) {
+                                  return Center(
+                                      child: Icon(
+                                    Icons.person,
+                                    size: 35,
+                                  ));
+                                }
+                         
+                                // Exibe a lista de comentários
+                         
+                                return ClipOval(
+                                  child: Container(
+                                    decoration: BoxDecoration(),
+                                    constraints: BoxConstraints(minHeight: 60),
+                                    child: Image.network(
+                                      userData['photoUrl'],
                                       fit: BoxFit
                                           .cover, // Preenche todo o espaço do container
-                                    )
-                                  : Icon(
-                                      Icons.person,
-                                      size: 40,
-                                    )),
-                        ),
-                      ),
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Center(
+                                            child: Icon(Icons
+                                                .error)); // Ícone de erro se a imagem não carregar
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                       ),
                       SizedBox(
                         width: 5,
                       ),
-                      widget.username != null
-                          ? Text(
-                              widget.username!,
-                              style: TextStyle(color: Colors.grey[800]),
-                            )
-                          : Text(
-                              widget.user.split('@')[0],
-                              style: TextStyle(color: Colors.grey[800]),
-                            )
+                     SizedBox(
+                    
+                            child: StreamBuilder<DocumentSnapshot>(
+                              stream: userCollection
+                                  .doc(widget.user)
+                                  .snapshots(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return Center(
+                                      child: CircularProgressIndicator());
+                                }
+                         
+                                // Obtém os dados do documento
+                                var userData =
+                                    snapshot.data!.data() as Map<String, dynamic>;
+                         
+                                // Verifica se há comentários (ou outros dados que você deseja exibir)
+                                if (userData['username'] == null) {
+                                  return Center(
+                                      child: Icon(
+                                    Icons.error,
+                                    size: 35,
+                                  ));
+                                }
+                         
+                                // Exibe a lista de comentários
+                         
+                                return Center(
+                                  child: Text(userData["username"]),
+                                );
+                              },
+                            ),
+                          ),
                     ],
                   ),
                   SizedBox(
                     height: 10,
                   ),
-                  Text(widget.message),
+                 Center(
+  child: Container(
+    width: MediaQuery.of(context).size.width /1.5,  // Defina uma largura máxima para o Container
+    child: Text(
+      widget.message,
+      softWrap: true,  // Quebra o texto em várias linhas automaticamente
+    ),
+  ),
+),
+SizedBox(height: 5,),
+
+
                   widget.fileURL != null
                       ? Row(
                           children: [

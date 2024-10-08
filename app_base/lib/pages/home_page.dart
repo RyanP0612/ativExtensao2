@@ -158,7 +158,7 @@ class _HomePageState extends State<HomePage> {
         .get();
 
     print("current user dnv ${currentUser.displayName}");
-    if (userData["photoUrl"] != null) {
+    if (userData.data()!.containsKey("photoUrl")) {
       postData["ProfilePhoto"] = userData["photoUrl"];
     }
     postData["Username"] = userData["username"];

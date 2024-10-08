@@ -18,7 +18,14 @@ class Comment extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
         // comentario
-        Text(text),
+        Container(
+    width: MediaQuery.of(context).size.width /1.4,  // Defina uma largura máxima para o Container
+    child: Text(
+      text,
+      softWrap: true,  // Quebra o texto em várias linhas automaticamente
+    ),
+  
+),
 
         const SizedBox(height: 5,),
         

@@ -82,7 +82,7 @@ class _CommentsPageState extends State<CommentsPage> {
          backgroundColor: Colors.grey[900],
         centerTitle: true,
         title: Text(
-          "Comentários de ${widget.user.split('@')[0]}",
+          "Comentários",
           style:
               TextStyle(color: Colors.grey[300], fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.height * 0.026,
         ),),
@@ -114,7 +114,15 @@ class _CommentsPageState extends State<CommentsPage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.message),
+                   
+  Container(
+    width: MediaQuery.of(context).size.width /1.5,  // Defina uma largura máxima para o Container
+    child: Text(
+      widget.message,
+      softWrap: true,  // Quebra o texto em várias linhas automaticamente
+    
+  ),
+),
                         SizedBox(height: 5),
                         Row(
                           children: [

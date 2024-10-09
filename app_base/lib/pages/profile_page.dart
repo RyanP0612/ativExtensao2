@@ -364,13 +364,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     MyTextBox(
                       text: userData['username'],
                       sectionName: 'username',
-                      onPressed: () => editField('username'),
+                      onPressed: () => editField('username'), edit: true,
                     ),
                     // bio
                     MyTextBox(
                       text: userData['bio'],
                       sectionName: 'bio',
-                      onPressed: () => editField('bio'),
+                      onPressed: () => editField('bio'), edit: true,
                     ),
 
                     const SizedBox(

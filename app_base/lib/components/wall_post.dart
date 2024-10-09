@@ -4,6 +4,8 @@ import 'package:app_base/components/delete_button.dart';
 import 'package:app_base/components/like_button.dart';
 import 'package:app_base/helper/helper_methods.dart';
 import 'package:app_base/pages/comments_page.dart';
+import 'package:app_base/pages/profile_page.dart';
+import 'package:app_base/pages/profile_page2.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -51,6 +53,24 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
     isLiked = widget.likes.contains(currentUser.email);
     // resolve o erro em likes: List<String>.from(post['Likes'] ?? []),
   }
+
+void goToProfilePage2(String email) {
+
+  if(currentUser.email != email){
+    Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => ProfilePage2(email: email)),
+  ); 
+  }
+  if(currentUser.email == email){
+    Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => ProfilePage()),
+  ); 
+  }
+ 
+}
+
 
   void toggledLike() {
     setState(() {
@@ -209,19 +229,22 @@ class _LeticiaLindaPostState extends State<LeticiaLindaPost> {
                          
                                 // Exibe a lista de comentários
                          
-                                return ClipOval(
-                                  child: Container(
-                                    decoration: BoxDecoration(),
-                                    constraints: BoxConstraints(minHeight: 60),
-                                    child: Image.network(
-                                      userData['photoUrl'],
-                                      fit: BoxFit
-                                          .cover, // Preenche todo o espaço do container
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Center(
-                                            child: Icon(Icons
-                                                .error)); // Ícone de erro se a imagem não carregar
-                                      },
+                                return GestureDetector(
+                                  onTap: ()=> goToProfilePage2(widget.user),
+                                  child: ClipOval(
+                                    child: Container(
+                                      decoration: BoxDecoration(),
+                                      constraints: BoxConstraints(minHeight: 60),
+                                      child: Image.network(
+                                        userData['photoUrl'],
+                                        fit: BoxFit
+                                            .cover, // Preenche todo o espaço do container
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Center(
+                                              child: Icon(Icons
+                                                  .error)); // Ícone de erro se a imagem não carregar
+                                        },
+                                      ),
                                     ),
                                   ),
                                 );

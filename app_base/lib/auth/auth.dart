@@ -1,4 +1,5 @@
 import 'package:app_base/auth/login_or_register.dart';
+import 'package:app_base/pages/feed_page.dart';
 import 'package:app_base/pages/home_page.dart';
 import 'package:app_base/pages/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';

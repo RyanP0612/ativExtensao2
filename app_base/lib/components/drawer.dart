@@ -5,8 +5,9 @@ import 'package:flutter/widgets.dart';
 
 class MyDrawer extends StatefulWidget {
   final void Function()? onProfileTap;
+  final void Function()? onHomeTap;
   final void Function()? onSignOut;
-  MyDrawer({super.key, required this.onProfileTap, required this.onSignOut});
+  MyDrawer({super.key, required this.onProfileTap, required this.onSignOut, required this.onHomeTap});
 
   @override
   State<MyDrawer> createState() => _MyDrawerState();
@@ -60,7 +61,7 @@ class _MyDrawerState extends State<MyDrawer> {
               MyListTile(
                 icon: Icons.home,
                 text: 'H O M E',
-                onTap: () => Navigator.pop(context),
+                onTap: widget.onHomeTap,
               ),
               // profile list tile
               MyListTile(

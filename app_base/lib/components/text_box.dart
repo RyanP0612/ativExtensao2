@@ -41,7 +41,7 @@ class MyTextBox extends StatelessWidget {
                             color: Colors.transparent,
                           ),
                           style: ButtonStyle(
-                            overlayColor: WidgetStateProperty.all(
+                            overlayColor: MaterialStatePropertyAll(
                                 Colors.transparent), // Remove efeito de clique
                           ),
                         ),

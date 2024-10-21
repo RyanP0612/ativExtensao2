@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:app_base/components/drawer.dart';
@@ -29,6 +30,7 @@ class _FeedPageState extends State<FeedPage> {
   final textController = TextEditingController();
 
   bool ArquivoEscolhido = false;
+  StreamController<bool> arquivoEscolhidoController = StreamController<bool>();
 
   File? _selectedFile; // Armazena o arquivo selecionado
   String? _selectedFileName; // Armazena o nome do arquivo
@@ -101,8 +103,9 @@ class _FeedPageState extends State<FeedPage> {
       print('Arquivo selecionado: $_selectedFileName');
       setState(() {
         ArquivoEscolhido = true; // Atualiza o estado do arquivo escolhido
+        // arquivoEscolhidoController.stream = true;
       });
-
+      arquivoEscolhidoController.add(true);
       // Aqui você pode chamar setState se necessário
     } else {
       // Se nenhum arquivo foi selecionado
@@ -170,6 +173,7 @@ class _FeedPageState extends State<FeedPage> {
       _selectedFile = null;
       _selectedFileName = '';
       textController.clear();
+      arquivoEscolhidoController.add(false);
       setState(() {
         ArquivoEscolhido = false; // Reseta o estado do arquivo escolhido
       });
@@ -212,7 +216,8 @@ class _FeedPageState extends State<FeedPage> {
       backgroundColor: Colors.grey[300],
       drawer: MyDrawer(
         onProfileTap: goToProfilePage,
-        onSignOut: signOut, onHomeTap: goToHomePage ,
+        onSignOut: signOut,
+        onHomeTap: goToHomePage,
       ),
       body: Center(
         child: Column(
@@ -276,7 +281,41 @@ class _FeedPageState extends State<FeedPage> {
                 },
               ),
             ),
-
+            // StreamBuilder<bool>(
+            //   stream: arquivoEscolhidoController.stream,
+            //   builder: (context, snapshot) {
+            //     // Verifica se o snapshot tem dados e se o valor é 'true'
+            //     if (snapshot.hasData && snapshot.data == true) {
+            //       // Exibe o popup com a imagem
+            //       WidgetsBinding.instance.addPostFrameCallback((_) {
+            //         showDialog(
+            //           context: context,
+            //           builder: (BuildContext context) {
+            //             return AlertDialog(
+            //               title: Text('Imagem Escolhida'),
+            //               content: Image.file(
+            //                 _selectedFile!,
+            //                 height: 150,
+            //                 width: 150,
+            //               ),
+            //               actions: [
+            //                 TextButton(
+            //                   onPressed: () {
+            //                     Navigator.of(context).pop();
+            //                   },
+            //                   child: Text('Fechar'),
+            //                 ),
+            //               ],
+            //             );
+            //           },
+            //         );
+            //       });
+            //     }
+            //     return Center(
+            //       child: Text('Aguardando seleção...'),
+            //     );
+            //   },
+            // ),
             // post mensagem
             Padding(
               padding: const EdgeInsets.all(25.0),

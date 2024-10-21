@@ -5,31 +5,35 @@ class AltButton extends StatelessWidget {
   final Color colorIcon;
   final Function()? onTap;
   final IconData icon;
-  const AltButton({super.key, required this.onTap, required this.icon, required this.colorBG, required this.colorIcon});
+  const AltButton(
+      {super.key,
+      required this.onTap,
+      required this.icon,
+      required this.colorBG,
+      required this.colorIcon});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-      
         // margin: EdgeInsets.all(25),
         padding: EdgeInsets.all(4),
         decoration: BoxDecoration(
-          
           borderRadius: BorderRadius.circular(8),
           color: Colors.grey[900],
         ),
         child: Container(
-          
-           decoration: BoxDecoration(
-          
-          borderRadius: BorderRadius.circular(4),
-          color: colorBG,
-        ),
-          child: Center(
-            child: Icon(icon, size: 70, color: colorIcon,)
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            color: colorBG,
           ),
+          child: Center(
+              child: Icon(
+            icon,
+            size: 67,
+            color: colorIcon,
+          )),
         ),
       ),
     );

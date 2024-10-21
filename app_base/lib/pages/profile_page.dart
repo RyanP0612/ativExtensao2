@@ -230,14 +230,12 @@ class _ProfilePageState extends State<ProfilePage> {
         print("current user display name: ${currentUser.displayName}");
       }
     }
-    
+
     _textEditingController.clear();
-   
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
         backgroundColor: Colors.grey[300],
         appBar: AppBar(
@@ -249,9 +247,7 @@ class _ProfilePageState extends State<ProfilePage> {
           backgroundColor: Colors.grey[900],
           foregroundColor: Colors.grey[300], //cor da seta do navegation.push
         ),
-        body: 
-        
-        StreamBuilder<DocumentSnapshot>(
+        body: StreamBuilder<DocumentSnapshot>(
             // O `stream` aqui escuta as mudanças em tempo real no documento específico do Firestore
             // A coleção "Users" contém os documentos dos usuários e `currentUser.email` é o ID do documento
             // (presumidamente, o email do usuário atual logado). O método `snapshots()` retorna um fluxo de
@@ -282,7 +278,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             color: Colors.transparent,
                           ),
                           style: ButtonStyle(
-                            overlayColor: WidgetStateProperty.all(
+                            overlayColor: MaterialStatePropertyAll(
                                 Colors.transparent), // Remove efeito de clique
                           ),
                         ),
@@ -364,13 +360,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     MyTextBox(
                       text: userData['username'],
                       sectionName: 'username',
-                      onPressed: () => editField('username'), edit: true,
+                      onPressed: () => editField('username'),
+                      edit: true,
                     ),
                     // bio
                     MyTextBox(
                       text: userData['bio'],
                       sectionName: 'bio',
-                      onPressed: () => editField('bio'), edit: true,
+                      onPressed: () => editField('bio'),
+                      edit: true,
                     ),
 
                     const SizedBox(

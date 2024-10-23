@@ -28,7 +28,7 @@ class _FeedPageState extends State<FeedPage> {
 
   // text controller
   final textController = TextEditingController();
-
+  
   bool ArquivoEscolhido = false;
   StreamController<bool> arquivoEscolhidoController = StreamController<bool>();
 
@@ -38,6 +38,7 @@ class _FeedPageState extends State<FeedPage> {
 
   void _refresh() {
     _teste = _teste;
+    
   }
 
   void initState() {

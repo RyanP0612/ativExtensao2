@@ -1,7 +1,12 @@
 import 'package:app_base/components/button.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+
+import 'package:win32/win32.dart';
 
 class ReceitaFormScreen extends StatefulWidget {
   @override
@@ -13,11 +18,11 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
   String? tipoReceita; // Veggie, Intolerante a lactose, Celíaco
   String? saborReceita; // Café da manhã, Comida, Sobremesa
   File? _imagemSelecionada; // Imagem do alimento
-
-  final TextEditingController _tituloController = TextEditingController();
-  final TextEditingController _ingredientesController = TextEditingController();
-  final TextEditingController _comoFazerController = TextEditingController();
-
+  String? _selectedFileName;
+  final  tituloController = TextEditingController();
+  final  _ingredientesController = TextEditingController();
+  final  _comoFazerController = TextEditingController();
+final currentUser = FirebaseAuth.instance.currentUser!;
   final ImagePicker _picker = ImagePicker();
 
   // Função para selecionar imagem
@@ -26,13 +31,14 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
     if (pickedFile != null) {
       setState(() {
         _imagemSelecionada = File(pickedFile.path);
+         _selectedFileName = pickedFile.name;
       });
     }
   }
 
   // Função para enviar o formulário
   void _enviarFormulario() {
-    if (_tituloController.text.isNotEmpty &&
+    if (tituloController.text.isNotEmpty &&
         tipoReceita != null &&
         saborReceita != null &&
         _ingredientesController.text.isNotEmpty &&
@@ -40,16 +46,91 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
         _imagemSelecionada != null) {
       // Exemplo de ação de envio (pode ser substituído por envio a um servidor, etc.)
       print("Formulário enviado!");
-      print("Título: ${_tituloController.text}");
+      print("Título: ${tituloController.text}");
       print("Tipo: $tipoReceita");
       print("Sabor: $saborReceita");
       print("Ingredientes: ${_ingredientesController.text}");
       print("Como Fazer: ${_comoFazerController.text}");
       print("Imagem: ${_imagemSelecionada!.path}");
+
+       
+      // Se houver um arquivo selecionado, faça o upload para o Firebase Storage
+      String fileName = _selectedFileName!;
+
+      // Adiciona um timestamp para garantir nomes de arquivos únicos
+      Reference ref = FirebaseStorage.instance.ref().child(
+          'uploads/${fileName}_${Timestamp.now().millisecondsSinceEpoch}');
+
+      ref.putFile(_imagemSelecionada!).then((snapshot) {
+        // Após o upload, obtenha a URL de download
+        snapshot.ref.getDownloadURL().then((fileUrl) {
+          // Salva o post com a URL do arquivo no Firestore
+          _salvarNoFirestore(fileUrl);
+        });
+      }).catchError((error) {
+        print('Erro ao fazer upload do arquivo: $error');
+      });
+  
+      // Se não houver arquivo, salva apenas a mensagem de texto
+   
+      
     } else {
-      print("Preencha todos os campos");
+      showDialog(context: context, builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("Preecha todos os campos."),
+          content: Text("Reveja todos os campos e tente enviar novamente."),
+          actions: [
+           TextButton(onPressed: (){
+             Navigator.of(context).pop();
+           }, child: Text("Fechar", style: TextStyle(color: Colors.red),))
+          ],
+        );
+      });
     }
   }
+
+  
+// Função para salvar os dados no Firestore
+  Future<void> _salvarNoFirestore(String? fileUrl) async {
+    Map<String, dynamic> postData = {
+      "UserEmailPost": currentUser.email,
+      "TitleRecipe":  tituloController.text,
+      "TypeRecipeDiet": tipoReceita,
+      "TypeDietFlavor": saborReceita,
+      "Ingredients": _ingredientesController.text,
+      "HowMake": _comoFazerController.text,
+      "TimeStamp": Timestamp.now(),
+      'Likes': [],
+      "FileURL": fileUrl
+    };
+
+    // Se houver uma URL de arquivo, adicione-a ao Firestore
+  
+
+
+    
+
+    // Salva os dados no Firestore
+    FirebaseFirestore.instance.collection("Recipe").add(postData).then((_) {
+      // Limpa os campos e atualiza o estado após salvar
+      _comoFazerController.clear();
+      _ingredientesController.clear();
+      tituloController.clear();
+      setState(() {
+        tipoReceita = null;
+        saborReceita = null;
+        _imagemSelecionada = null;
+        _selectedFileName = null;
+      });
+      Navigator.pop(context);
+      Navigator.pop(context);
+    
+      print('Post salvo com sucesso no Firestore.');
+    }).catchError((error) {
+      print('Erro ao salvar o post no Firestore: $error');
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +188,7 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
             ),
             // Título
             TextField(
-              controller: _tituloController,
+              controller: tituloController,
               decoration: InputDecoration(
                 labelText: 'Título da Receita',
                 border: OutlineInputBorder(),

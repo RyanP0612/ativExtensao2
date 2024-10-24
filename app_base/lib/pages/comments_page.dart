@@ -8,13 +8,13 @@ class CommentsPage extends StatefulWidget {
   final String postId;
   final String message;
   final String user;
-  final String time;
+  final String? time;
 
   CommentsPage({
     super.key,
     required this.postId,
     required this.user,
-    required this.time,
+    this.time,
     required this.message,
   });
 
@@ -134,10 +134,13 @@ class _CommentsPageState extends State<CommentsPage> {
                               " • ",
                               style: TextStyle(color: Colors.grey[400]),
                             ),
+
+                            widget.time != null ? 
                             Text(
-                              widget.time,
+                              widget.time!,
                               style: TextStyle(color: Colors.grey[400]),
-                            ),
+                            ):
+                            SizedBox()
                           ],
                         )
                       ],

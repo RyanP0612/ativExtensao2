@@ -22,7 +22,7 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
   final  tituloController = TextEditingController();
   final  _ingredientesController = TextEditingController();
   final  _comoFazerController = TextEditingController();
-final currentUser = FirebaseAuth.instance.currentUser!;
+  final currentUser = FirebaseAuth.instance.currentUser!;
   final ImagePicker _picker = ImagePicker();
 
   // Função para selecionar imagem

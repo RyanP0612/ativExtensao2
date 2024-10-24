@@ -1,5 +1,6 @@
 import 'package:app_base/components/custom_carousel.dart';
 import 'package:app_base/components/drawer.dart';
+import 'package:app_base/pages/feed_diet_page.dart';
 import 'package:app_base/pages/feed_page.dart';
 import 'package:app_base/pages/form_receita_page.dart';
 import 'package:app_base/pages/home_page.dart';
@@ -41,13 +42,21 @@ class _DietPageState extends State<DietPage> {
         context, MaterialPageRoute(builder: (context) => HomePage()));
   }
 
+
   void signOut() {
     FirebaseAuth.instance.signOut();
   }
 
+
+  Widget build(BuildContext context) {
+    
   List<Widget> containerList = [
     GestureDetector(
-      onTap: () {},
+      onTap: () {
+        
+        Navigator.push(
+        context, MaterialPageRoute(builder: (context) => FeedDietPage()));
+      },
       child: Container(
         padding: EdgeInsets.all(10), // Padding para espaçamento interno
         height: 60, // Aumentei a altura
@@ -163,8 +172,6 @@ class _DietPageState extends State<DietPage> {
       ),
     ),
   ];
-
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey[900],

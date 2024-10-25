@@ -17,8 +17,8 @@ class WallRecipePost extends StatefulWidget {
   final String imgURL;
   final String tipoReceita;
   final String saborReceita;
-  final String ingredientes;
-  final String comoFazer;
+  final List<String> ingredientes;
+  final List<String> comoFazer;
   final String quemPostou;
   final List<String> likes;
   const WallRecipePost(

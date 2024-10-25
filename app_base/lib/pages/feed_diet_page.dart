@@ -118,8 +118,10 @@ class _FeedDietPageState extends State<FeedDietPage> {
                           imgURL: post['FileURL'],
                           tipoReceita: post['TypeRecipeDiet'],
                           saborReceita: post['TypeDietFlavor'],
-                          ingredientes: post['Ingredients'],
-                          comoFazer: post['HowMake'],
+                          ingredientes:  List<String>.from(post['Ingredients'] ??
+                                []),
+                          comoFazer: List<String>.from(post['HowMake'] ??
+                                []),
                           quemPostou: post['UserEmailPost'],
                           likes: List<String>.from(post['Likes'] ??
                                 []), // Converte Likes para uma lista de Strings

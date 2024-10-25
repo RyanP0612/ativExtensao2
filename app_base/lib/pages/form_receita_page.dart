@@ -1,8 +1,14 @@
+import 'dart:async';
+
 import 'package:app_base/components/button.dart';
+import 'package:app_base/components/delete_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -24,7 +30,10 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
   final  _comoFazerController = TextEditingController();
   final currentUser = FirebaseAuth.instance.currentUser!;
   final ImagePicker _picker = ImagePicker();
-
+  final StreamController<List<String>> _ingredientesStream = StreamController<List<String>>.broadcast();
+  final StreamController<List<String>> _HowMakeStream = StreamController<List<String>>.broadcast();
+  List<String> ingredientes = []; 
+  List<String> HowMake = []; 
   // Função para selecionar imagem
   Future<void> _selecionarImagem() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -36,13 +45,103 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
     }
   }
 
+   
+ 
+
+  // No construtor ou no initState, você pode adicionar a lista inicial
+  _ReceitaFormScreenState() {
+    _ingredientesStream.add(ingredientes);
+    _HowMakeStream.add(HowMake);
+  }
+
+  @override
+  void dispose() {
+    _ingredientesStream.close(); 
+    _HowMakeStream.close();
+    super.dispose();
+  }
+
+  void _adicionarIngOrHowMake(String ingHowmake) {
+    String title = 'Error';
+    String content = "Feche e tente novamente";
+    if (ingHowmake == "ing") {
+      title = "Ingredientes";
+      content = "Aqui você pode adicionar ingredientes a sua receita, escreva no campo abaixo o primeiro ingrediente e clique em adicionar posteriormente, caso haja mais, só voltar e adicionar outro!";
+    } else if (ingHowmake == "how") {
+      title = "Passo a Passo";
+      content = "Aqui você pode adicionar o passo a passo da sua receita, escreva no campo abaixo o primeiro passo e clique em adicionar posteriormente, depois de acrescentar, volte aqui e adicione o próximo passo!";
+    }
+
+   
+
+    showDialog(context: context, builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Container(
+          constraints: BoxConstraints(maxHeight: 230),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(content),
+              TextField(
+                controller: ingHowmake == 'ing' ? _ingredientesController : _comoFazerController,
+                maxLines: 2,
+                decoration: InputDecoration(
+                  labelText: title,
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () {
+            Navigator.of(context).pop();
+          }, child: Text("Fechar", style: TextStyle(color: Colors.red),)),
+          TextButton(onPressed: () {
+             if(_comoFazerController.text == '' && _ingredientesController.text == '' ){
+      showDialog(context: context, builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("Preecha todos os campos."),
+          content: Text("Reveja todos os campos e tente enviar novamente."),
+          actions: [
+           TextButton(onPressed: (){
+             Navigator.of(context).pop();
+           }, child: Text("Fechar", style: TextStyle(color: Colors.red),)),
+           
+          ],
+        );
+      });
+    }
+    else{
+ String newEntry = ingHowmake == 'ing' ? _ingredientesController.text : _comoFazerController.text;
+            if(ingHowmake == "ing"){
+            ingredientes.add(newEntry);    
+            }
+            else {
+            HowMake.add(newEntry);    
+            }
+          
+            _ingredientesStream.add(ingredientes); 
+            _HowMakeStream.add(HowMake); 
+            _ingredientesController.clear();
+            _comoFazerController.clear();
+            Navigator.of(context).pop(); // Fecha o dialog
+    }
+           
+          }, child: Text("Adicionar", style: TextStyle(color: Colors.green),)),
+        ],
+      );
+    });
+  }
+
   // Função para enviar o formulário
   void _enviarFormulario() {
     if (tituloController.text.isNotEmpty &&
         tipoReceita != null &&
         saborReceita != null &&
-        _ingredientesController.text.isNotEmpty &&
-        _comoFazerController.text.isNotEmpty &&
+        ingredientes.isNotEmpty &&
+        HowMake.isNotEmpty &&
         _imagemSelecionada != null) {
       // Exemplo de ação de envio (pode ser substituído por envio a um servidor, etc.)
       print("Formulário enviado!");
@@ -51,7 +150,9 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
       print("Sabor: $saborReceita");
       print("Ingredientes: ${_ingredientesController.text}");
       print("Como Fazer: ${_comoFazerController.text}");
+      print("aaaaaaaaaaa");
       print("Imagem: ${_imagemSelecionada!.path}");
+
 
        
       // Se houver um arquivo selecionado, faça o upload para o Firebase Storage
@@ -82,7 +183,8 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
           actions: [
            TextButton(onPressed: (){
              Navigator.of(context).pop();
-           }, child: Text("Fechar", style: TextStyle(color: Colors.red),))
+           }, child: Text("Fechar", style: TextStyle(color: Colors.red),)),
+           
           ],
         );
       });
@@ -97,8 +199,8 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
       "TitleRecipe":  tituloController.text,
       "TypeRecipeDiet": tipoReceita,
       "TypeDietFlavor": saborReceita,
-      "Ingredients": _ingredientesController.text,
-      "HowMake": _comoFazerController.text,
+      "Ingredients": ingredientes,
+      "HowMake": HowMake,
       "TimeStamp": Timestamp.now(),
       'Likes': [],
       "FileURL": fileUrl
@@ -116,7 +218,13 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
       _comoFazerController.clear();
       _ingredientesController.clear();
       tituloController.clear();
+      ingredientes.clear();
+      HowMake.clear();
+   
+
       setState(() {
+        _HowMakeStream.add(HowMake);
+        _ingredientesStream.add(ingredientes);
         tipoReceita = null;
         saborReceita = null;
         _imagemSelecionada = null;
@@ -271,35 +379,256 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
               ],
             ),
             SizedBox(height: 16),
+             Text('Ingredientes'),
+             SizedBox(height: 5,),
+            StreamBuilder<List<String>>(
+  stream: _ingredientesStream.stream,
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+       return Container(
+          margin: EdgeInsets.symmetric(vertical: 3.0, horizontal: 16.0),
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: Offset(0, 3), // Shadow position
+              ),
+            ],
+          ),
+          child: Center(child: Text("Nenhum ingrediente adicionado.")));
+    }
 
-            // Ingredientes
-            TextField(
-              controller: _ingredientesController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                labelText: 'Ingredientes',
-                border: OutlineInputBorder(),
+    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+      return Container(
+          margin: EdgeInsets.symmetric(vertical: 3.0, horizontal: 16.0),
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: Offset(0, 3), // Shadow position
+              ),
+            ],
+          ),
+          child: Center(child: Text("Nenhum ingrediente adicionado.")));
+    }
+
+    final ingredientes = snapshot.data!;
+
+  return ListView.builder(
+  shrinkWrap: true,
+  physics: NeverScrollableScrollPhysics(),
+  itemCount: ingredientes.length,
+  itemBuilder: (context, index) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 3.0, horizontal: 16.0),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: Offset(0, 3), // Shadow position
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.all(6.0),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Text(
+                    "${index + 1}º ",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Flexible(
+                    child: Text(
+                      ingredientes[index],
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 16),
-
-            // Como fazer
-            TextField(
-              controller: _comoFazerController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                labelText: 'Como Fazer',
-                border: OutlineInputBorder(),
-              ),
+            SizedBox(width: 5),
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                setState(() {
+                  ingredientes.removeAt(index);
+                  _ingredientesStream.add(ingredientes);
+                });
+              },
             ),
-            SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  },
+);
+
+  },
+),
+
+
+           
+      
+               
+                   Padding(
+               padding: EdgeInsets.only(left: 60, right: 60, top: 16),
+                    child: MyButton(
+                       onTap:(){ _adicionarIngOrHowMake("ing");}, text: 'Adicionar Ingrediente', ),
+                  ),
+                
+              
+        
+
+
+    
+          
+
 
             // Imagem do alimento
 
             SizedBox(height: 16),
+
+           Text('Passo a Passo'),
+             SizedBox(height: 5,),
+            StreamBuilder<List<String>>(
+  stream: _HowMakeStream.stream,
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Container(
+          margin: EdgeInsets.symmetric(vertical: 3.0, horizontal: 16.0),
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: Offset(0, 3), // Shadow position
+              ),
+            ],
+          ),
+          child: Center(child: Text("Nenhum passo adicionado."))); // Indicador de carregamento
+    }
+
+    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+      return Container(
+          margin: EdgeInsets.symmetric(vertical: 3.0, horizontal: 16.0),
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: Offset(0, 3), // Shadow position
+              ),
+            ],
+          ),
+          child: Center(child: Text("Nenhum passo adicionado.")));
+    }
+
+    final howMake = snapshot.data!;
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: howMake.length,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: EdgeInsets.symmetric(vertical: 3.0, horizontal: 16.0),
+          decoration: BoxDecoration(
+          color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: Offset(0, 3), // Shadow position
+              ),
+            ],
+          ),
+          child: ListTile(
+            contentPadding: EdgeInsets.all(6.0),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                       Text("${index + 1}º passo: ", style: TextStyle(fontWeight: FontWeight.bold),),
+                      Flexible(
+                        child: Text(" ${howMake[index]}",
+                          style: TextStyle(
+                            fontSize: 16,
+                           
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 5),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () {
+                    setState(() {
+                      howMake.removeAt(index);
+                      _HowMakeStream.add(howMake);
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  },
+),
+
+
+           
+      
+               
+                  Padding(
+               padding: EdgeInsets.only(left: 60, right: 60, top: 16),
+                    child: MyButton(
+                       onTap:(){ _adicionarIngOrHowMake("how");}, text: 'Adicionar Passo', ),
+                  ),
+
+              SizedBox(height: 30),
             Center(
                 child:
-                    MyButton(onTap: _enviarFormulario, text: 'Enviar Receita'))
+                    MyButton(onTap: 
+                      _enviarFormulario
+                    , text: 'Enviar Receita'))
           ],
         ),
       ),

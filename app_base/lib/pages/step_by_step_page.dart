@@ -3,6 +3,10 @@ import 'package:app_base/pages/home_page.dart';
 import 'package:app_base/pages/profile_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'dart:collection';
+import 'dart:math';
+
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class StepByStepPage extends StatefulWidget {
   final String postId;
@@ -108,6 +112,8 @@ class _StepByStepPageState extends State<StepByStepPage> {
               ],
             ),
             SizedBox(height: 15,),
+
+            Center(child: Text('Receita: ${widget.tituloReceita}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),)),
             
             Padding(
               padding: const EdgeInsets.all(20),
@@ -120,24 +126,54 @@ class _StepByStepPageState extends State<StepByStepPage> {
                    padding: EdgeInsets.all(5),
                   color:  const Color.fromARGB(255, 224, 224, 224),
                     width: MediaQuery.of(context).size.width /1.5,  // Defina uma largura máxima para o Container
-                    child: Column(children: List.generate(widget.ingredientes.length, (index) {
-            return Container(
-              padding: EdgeInsets.all(5),
-              margin: EdgeInsets.symmetric(vertical: 5), // Espaçamento entre os containers
-              color: const Color.fromARGB(255, 224, 224, 224),
-              child: Row(
-                children: [
-                  Text("${index + 1}º ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
-                  SizedBox(width: 5,),
-                  Text(
-                    widget.ingredientes[index],
-                    style: TextStyle(fontSize: 16),
-                    softWrap: true,
-                  ),
-                ],
-              ),
-            );
-          }),)
+                    child: Column(
+                      children: [
+                        SizedBox(height: 5,),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Icon(FontAwesomeIcons.utensils,),
+                              Text("INGREDIENTES", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                              Icon(FontAwesomeIcons.utensils),
+                            ],
+                            
+                          ),
+                          SizedBox(height: 15,),
+                        Column(children: List.generate(widget.ingredientes.length, (index) {
+                                    return Container(
+                                      padding: EdgeInsets.all(5),
+                                      margin: EdgeInsets.symmetric(vertical: 5), // Espaçamento entre os containers
+                                      color: const Color.fromARGB(255, 224, 224, 224),
+                                      child: Row(
+                                        children: [
+                                        
+                                         ClipOval(
+                                    child: Container(
+                                      height: 35,
+                                      width: 35,
+                                  
+                                      decoration: BoxDecoration(
+                                        
+                                        color: Colors.black
+                                      ),
+
+                                      child: Center(child: Text("${index + 1}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17,color: Colors.white))),
+                          
+                        ),
+                                          ),
+                                         
+                                          SizedBox(width: 10,),
+                                          Text(
+                        widget.ingredientes[index],
+                        style: TextStyle(fontSize: 16),
+                        softWrap: true,
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }),),
+                      ],
+                    )
                   ),
               ),
             ),
@@ -154,24 +190,49 @@ class _StepByStepPageState extends State<StepByStepPage> {
                   color:  const Color.fromARGB(255, 224, 224, 224),
                     width: MediaQuery.of(context).size.width /1.5,  // Defina uma largura máxima para o Container
                     child: Column(
-                      children: List.generate(widget.comoFazer.length, (index) {
-            return Container(
-              padding: EdgeInsets.all(5),
-              margin: EdgeInsets.symmetric(vertical: 5), // Espaçamento entre os containers
-              color: const Color.fromARGB(255, 224, 224, 224),
-              child: Row(
-                children: [
-                   Text("${index + 1}º passo: ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
-                  SizedBox(width: 5,),
-                  Text(
-                    widget.comoFazer[index],
-                    style: TextStyle(fontSize: 16),
-                    softWrap: true,
-                  ),
-                ],
-              ),
-            );
-          }),
+                      children: [
+                         SizedBox(height: 5,),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Icon(FontAwesomeIcons.pencil,),
+                              Text("COMO FAZER", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                              Transform(
+  alignment: Alignment.center,
+  transform: Matrix4.rotationY(pi), // Inverte horizontalmente
+  child: Icon(FontAwesomeIcons.pencil),
+)
+
+                            ],
+                            
+                          ),
+                          SizedBox(height: 15,),
+                        Column(
+                          children: List.generate(widget.comoFazer.length, (index) {
+                                    return Container(
+                                      padding: EdgeInsets.all(5),
+                                      margin: EdgeInsets.symmetric(vertical: 5), // Espaçamento entre os containers
+                                      color: const Color.fromARGB(255, 224, 224, 224),
+                                      child: Row(
+                                        children: [
+                                           Text("${index + 1}º Passo: ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21, fontFamily: 'DancingScript',fontStyle: FontStyle.italic),),
+                                          SizedBox(width: 5,),
+                                          Column(
+                                            children: [
+                                              SizedBox(height: 5,),
+                                              Text(
+                                                                      widget.comoFazer[index],
+                                                                      style: TextStyle(fontSize: 16),
+                                                                      softWrap: true,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }),
+                        ),
+                      ],
                     ),
                   ),
               ),

@@ -9,13 +9,14 @@ class CommentsPage extends StatefulWidget {
   final String message;
   final String user;
   final String? time;
+  final String? type;
 
   CommentsPage({
     super.key,
     required this.postId,
     required this.user,
     this.time,
-    required this.message,
+    required this.message, this.type,
   });
 
   @override
@@ -31,9 +32,10 @@ class _CommentsPageState extends State<CommentsPage> {
   @override
   
   final _commentTextController = TextEditingController();
-   void addComment(String commentText) {
-    FirebaseFirestore.instance
-        .collection("User Post")
+  void addComment(String commentText) {
+    if(widget.type! == 'Recipe'){
+      FirebaseFirestore.instance
+        .collection('${widget.type}')
         .doc(widget.postId)
         .collection('Comments')
         .add({
@@ -41,6 +43,19 @@ class _CommentsPageState extends State<CommentsPage> {
       "CommentedBy": currentUser.email,
       "CommentTime": Timestamp.now() //lembrar de formatar no dispray
     });
+    }
+    else{
+    FirebaseFirestore.instance
+        .collection('${widget.type}')
+        .doc(widget.postId)
+        .collection('Comments')
+        .add({
+      "CommentText": commentText,
+      "CommentedBy": currentUser.email,
+      "CommentTime": Timestamp.now() //lembrar de formatar no dispray
+    });
+    }
+    
   }
 
 // show a dialog box
@@ -153,7 +168,7 @@ class _CommentsPageState extends State<CommentsPage> {
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
-                        .collection("User Post")
+                        .collection("${widget.type}")
                         .doc(widget.postId)
                         .collection("Comments")
                         .orderBy("CommentTime", descending: true)

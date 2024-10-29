@@ -381,6 +381,7 @@ SizedBox(height: 5,),
                       context,
                       MaterialPageRoute(
                         builder: (context) => CommentsPage(
+                          type: 'User Post',
                           postId: widget.postId,
                           user: widget.user,
                           time: widget.time,

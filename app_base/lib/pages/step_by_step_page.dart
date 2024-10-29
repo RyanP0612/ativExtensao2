@@ -1,6 +1,8 @@
 import 'package:app_base/components/drawer.dart';
 import 'package:app_base/pages/home_page.dart';
 import 'package:app_base/pages/profile_page.dart';
+import 'package:app_base/pages/profile_page2.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:collection';
@@ -34,7 +36,7 @@ class StepByStepPage extends StatefulWidget {
 }
 
 class _StepByStepPageState extends State<StepByStepPage> {
-  
+  final userCollection = FirebaseFirestore.instance.collection("Users");
   void goToProfilePage() {
     Navigator.pop(context);
 
@@ -52,6 +54,23 @@ class _StepByStepPageState extends State<StepByStepPage> {
         context, MaterialPageRoute(builder: (context) => HomePage()));
   }
 
+  final currentUser = FirebaseAuth.instance.currentUser!;
+void goToProfilePage2(String email) {
+
+  if(currentUser.email != email){
+    Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => ProfilePage2(email: email)),
+  ); 
+  }
+  if(currentUser.email == email){
+    Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => ProfilePage()),
+  ); 
+  }
+ 
+}
 
 
   @override
@@ -61,7 +80,7 @@ class _StepByStepPageState extends State<StepByStepPage> {
         backgroundColor: Colors.grey[900],
         centerTitle: true,
         title: Text(
-          "Leticia lindaaa 123",
+          "Passo a passo",
           style:
               TextStyle(color: Colors.grey[300], fontWeight: FontWeight.bold),
         ),
@@ -113,8 +132,83 @@ class _StepByStepPageState extends State<StepByStepPage> {
             ),
             SizedBox(height: 15,),
 
-            Center(child: Text('Receita: ${widget.tituloReceita}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),)),
-            
+            Center(child: Text('${widget.tituloReceita}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),)),
+        
+                 Padding(
+                   padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10),
+                   child: StreamBuilder<DocumentSnapshot>(
+                                    stream: userCollection
+                                        .doc(widget.quemPostou)
+                                        .snapshots(),
+                                    builder: (context, snapshot) {
+                                      if (!snapshot.hasData) {
+                                        return Center(
+                                            child: CircularProgressIndicator());
+                                      }
+                               
+                                      // Obtém os dados do documento
+                                      var userData =
+                                          snapshot.data!.data() as Map<String, dynamic>;
+                               
+                                      // Verifica se há comentários (ou outros dados que você deseja exibir)
+                                      if (userData['photoUrl'] == null) {
+                                        return GestureDetector(
+                                        onTap: ()=> goToProfilePage2(widget.quemPostou),
+                                        child: Row(
+                                          children: [
+                                            Text("Por: ${userData['username']}", style: TextStyle(fontSize: 15),),
+                                            SizedBox(width: 5,),
+                                           ClipOval(
+                                          child: Container(
+                                            decoration: BoxDecoration(),
+                                            constraints: BoxConstraints(minHeight: 60),
+                                            child:   Center(
+                                        child: Icon(
+                                      Icons.person,
+                                      size: 35,
+                                    ))
+                                          ),
+                                        ),
+                                          ],
+                                        ),
+                                      );
+                                      }
+                               
+                                      // Exibe a lista de comentários
+                               
+                                      return GestureDetector(
+                                        onTap: ()=> goToProfilePage2(widget.quemPostou),
+                                        child: Row(
+                                          children: [
+                                           Text("Por: ${userData['username']}", style: TextStyle(fontSize: 15),),
+                                            SizedBox(width: 5,),
+                                           ClipOval(
+                                          child: Container(
+                                            
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle
+                                            ),
+                                            constraints: BoxConstraints( maxHeight:45, minWidth: 45),
+                                            child: Image.network(
+                                              userData['photoUrl'],
+                                              fit: BoxFit
+                                                  .fill, // Preenche todo o espaço do container
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Center(
+                                                    child: Icon(Icons
+                                                        .error)); // Ícone de erro se a imagem não carregar
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  
+                                 
+                               ),
+                 ),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Container(
@@ -232,11 +326,13 @@ class _StepByStepPageState extends State<StepByStepPage> {
                                     );
                                   }),
                         ),
+                      
                       ],
                     ),
                   ),
               ),
             ),
+           
           ],
         ),
       ),

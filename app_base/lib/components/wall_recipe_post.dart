@@ -260,16 +260,8 @@ void goToProfilePage2(String email) {
                         
                       
                     ),
-                    Container(
-                      padding: EdgeInsets.all(5),
-                      margin: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Row(
-                        children: [
-                           CommentButton(onTap: () {
+                    GestureDetector(
+                      onTap: () {
                             // deletePost();
                         Navigator.push(
                           context,
@@ -277,45 +269,71 @@ void goToProfilePage2(String email) {
                             builder: (context) => CommentsPage(
                               postId: widget.postId,
                               user: widget.quemPostou,
+                              type: 'Recipe',
                             
                               message: widget.tituloReceita,
                             ),
                           ),
                         );
-                      }),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                           StreamBuilder(
-                        // Define o fluxo de dados que o StreamBuilder irá escutar
-                        stream: FirebaseFirestore.instance
-                            .collection(
-                                "Recipe") // Acessa a coleção chamada "User Post"
-                            .doc(widget.postId)
-                            .collection("Comments")
-                            .snapshots(), // Retorna um fluxo de atualizações em tempo real
-                        builder: (context, snapshot) {
-                          // Verifica se o snapshot contém dados
-                          if (snapshot.hasData) {
-                            // Conta o número de comentários (documentos na coleção "Comments")
-                            int commentCount = snapshot.data!.docs.length;
-              
-                            return Text(
-                              "$commentCount",
-                              style: TextStyle(color: Colors.grey[700]),
-                            );
-                          } else if (snapshot.hasError) {
-                            return Center(
-                              child: Text("Erro: ${snapshot.error.toString()}"),
-                            );
-                          }
-                          return const Center(
-                            child:
-                                CircularProgressIndicator(), // Exibe um loading enquanto os dados estão sendo carregados
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        margin: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Row(
+                          children: [
+                             CommentButton(onTap: () {
+                              // deletePost();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CommentsPage(
+                                postId: widget.postId,
+                                user: widget.quemPostou,
+                                type: 'Recipe',
+                              
+                                message: widget.tituloReceita,
+                              ),
+                            ),
                           );
-                        },
-                      ),
-                        ],
+                        }),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                             StreamBuilder(
+                          // Define o fluxo de dados que o StreamBuilder irá escutar
+                          stream: FirebaseFirestore.instance
+                              .collection(
+                                  "Recipe") // Acessa a coleção chamada "User Post"
+                              .doc(widget.postId)
+                              .collection("Comments")
+                              .snapshots(), // Retorna um fluxo de atualizações em tempo real
+                          builder: (context, snapshot) {
+                            // Verifica se o snapshot contém dados
+                            if (snapshot.hasData) {
+                              // Conta o número de comentários (documentos na coleção "Comments")
+                              int commentCount = snapshot.data!.docs.length;
+                                    
+                              return Text(
+                                "$commentCount",
+                                style: TextStyle(color: Colors.grey[700]),
+                              );
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                child: Text("Erro: ${snapshot.error.toString()}"),
+                              );
+                            }
+                            return const Center(
+                              child:
+                                  CircularProgressIndicator(), // Exibe um loading enquanto os dados estão sendo carregados
+                            );
+                          },
+                        ),
+                          ],
+                        ),
                       ),
                     )
                   ],

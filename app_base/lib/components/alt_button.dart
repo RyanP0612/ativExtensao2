@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AltButton extends StatelessWidget {
-  final Color colorBG;
-  final Color colorIcon;
+  final Color? colorBG;
+  final Color? colorIcon;
   final Function()? onTap;
   final IconData icon;
   const AltButton(
@@ -24,6 +24,7 @@ class AltButton extends StatelessWidget {
           color: Colors.grey[900],
         ),
         child: Container(
+          padding: EdgeInsets.all(6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
             color: colorBG,
@@ -31,7 +32,7 @@ class AltButton extends StatelessWidget {
           child: Center(
               child: Icon(
             icon,
-            size: 67,
+            size: 60,
             color: colorIcon,
           )),
         ),

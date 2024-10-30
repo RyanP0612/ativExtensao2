@@ -5,6 +5,8 @@ import 'package:app_base/pages/feed_page.dart';
 import 'package:app_base/pages/profile_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,7 +16,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  @override
+ late final AnimationController _controller;
+
+@override
+
+
   void goToProfilePage() {
     Navigator.pop(context);
 
@@ -94,7 +100,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     AltButton(
                       onTap: goToFeedPage,
-                      icon: Icons.article_rounded,
+                      icon: LucideIcons.newspaper,
                       colorBG: Colors.blueAccent,
                       colorIcon: Colors.white,
                     ),
@@ -109,8 +115,8 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     AltButton(
                       onTap: goToDietPage,
-                      icon: Icons.restaurant_menu,
-                      colorBG: Color.fromARGB(255, 238, 101, 10),
+                      icon: LucideIcons.utensilsCrossed,
+                      colorBG: Colors.green[800],
                       colorIcon: Colors.white,
                     ),
                     Text(
@@ -124,7 +130,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     AltButton(
                       onTap: () {},
-                      icon: Icons.date_range_rounded,
+                      icon: LucideIcons.calendar,
                       colorBG: Color.fromARGB(255, 187, 17, 17),
                       colorIcon: Colors.white,
                     ),
@@ -136,7 +142,8 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ],
-            )
+            ),
+            
           ],
         ),
       ),

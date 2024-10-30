@@ -11,6 +11,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lottie/lottie.dart';
 
 class DietPage extends StatefulWidget {
   const DietPage({super.key});
@@ -19,8 +20,20 @@ class DietPage extends StatefulWidget {
   State<DietPage> createState() => _DietPageState();
 }
 
-class _DietPageState extends State<DietPage> {
-  @override
+class _DietPageState extends State<DietPage>  with SingleTickerProviderStateMixin {
+
+
+   late final AnimationController _controller;
+
+@override
+void initState() {
+  super.initState();
+  
+  _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 1), // Defina a duração da animação
+  );
+}
   void goToProfilePage() {
     Navigator.pop(context);
 
@@ -226,19 +239,61 @@ class _DietPageState extends State<DietPage> {
         child: Column(
           children: [
             Container(
+              padding: EdgeInsets.all(5),
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.grey.shade600,
-                        // spreadRadius: 2,
-                        blurRadius: 50,
-                        offset: const Offset(0, 15))
-                  ]),
-              width: MediaQuery.of(context).size.width,
-              child: Image.asset(
-                "assets/images/papa.png",
-                fit: BoxFit.fill,
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+              color: Colors.grey[900],),
+              child: Container(
+                height: 120,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+                
+                    color: Colors.green[800],
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //       color: Colors.grey.shade600,
+                    //       // spreadRadius: 2,
+                    //       blurRadius: 50,
+                    //       offset: const Offset(0, 15))
+                    // ]
+                    
+                    ),
+                width: MediaQuery.of(context).size.width,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Lottie.asset(
+                    'assets/animations/alimentos.json',
+                    controller: _controller,
+                    onLoaded: (composition) {
+                      // Configure the AnimationController with the duration of the
+                      // Lottie file and start the animation.
+                      _controller
+                        ..duration = composition.duration
+                        ..forward();
+                    },
+                                ),
+                                Container(
+                                  height: 150,
+                                  child: Lottie.asset(
+                                                    'assets/animations/mulherPensando.json',
+                                                   
+                                                    controller: _controller,
+                                                    
+                                                    onLoaded: (composition) {
+                                                      
+                                                      // Configure the AnimationController with the duration of the
+                                                      // Lottie file and start the animation.
+                                                      _controller
+                                                        ..duration = composition.duration
+                                                        ..forward();
+                                                    },
+                                  ),
+                                ),
+                               
+                                _controller.status.isCompleted? Icon(Icons.abc) : SizedBox()
+                  ],
+                ),
               ),
             ),
             SizedBox(

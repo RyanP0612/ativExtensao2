@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_base/components/button.dart';
 import 'package:app_base/components/delete_button.dart';
+import 'package:app_base/themes/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -495,7 +496,7 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
                    Padding(
                padding: EdgeInsets.only(left: 60, right: 60, top: 16),
                     child: MyButton(
-                       onTap:(){ _adicionarIngOrHowMake("ing");}, text: 'Adicionar Ingrediente', ),
+                       onTap:(){ _adicionarIngOrHowMake("ing");}, text: 'Adicionar Ingrediente', buttonColor: AppTheme.cor3, ),
                   ),
                 
               
@@ -620,7 +621,7 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
                   Padding(
                padding: EdgeInsets.only(left: 60, right: 60, top: 16),
                     child: MyButton(
-                       onTap:(){ _adicionarIngOrHowMake("how");}, text: 'Adicionar Passo', ),
+                       onTap:(){ _adicionarIngOrHowMake("how");}, text: 'Adicionar Passo', buttonColor: AppTheme.cor3, ),
                   ),
 
               SizedBox(height: 30),
@@ -628,7 +629,7 @@ class _ReceitaFormScreenState extends State<ReceitaFormScreen> {
                 child:
                     MyButton(onTap: 
                       _enviarFormulario
-                    , text: 'Enviar Receita'))
+                    , text: 'Enviar Receita',  buttonColor: AppTheme.cor3, ))
           ],
         ),
       ),

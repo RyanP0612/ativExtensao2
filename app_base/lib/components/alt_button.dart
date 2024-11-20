@@ -20,13 +20,13 @@ class AltButton extends StatelessWidget {
         // margin: EdgeInsets.all(25),
         padding: EdgeInsets.all(4),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(50),
           color: Colors.grey[900],
         ),
         child: Container(
-          padding: EdgeInsets.all(6),
+          padding: EdgeInsets.all(10),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(50),
             color: colorBG,
           ),
           child: Center(

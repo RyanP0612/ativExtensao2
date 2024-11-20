@@ -3,6 +3,7 @@ import 'package:app_base/components/drawer.dart';
 import 'package:app_base/pages/diet_page.dart';
 import 'package:app_base/pages/feed_page.dart';
 import 'package:app_base/pages/profile_page.dart';
+import 'package:app_base/themes/theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -53,19 +54,19 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: AppTheme.cor6,
         centerTitle: true,
         title: Text(
           "Home",
           style:
-              TextStyle(color: Colors.grey[300], fontWeight: FontWeight.bold),
+              TextStyle(color:AppTheme.cor1, fontWeight: FontWeight.bold),
         ),
 
         actions: [],
 
-        foregroundColor: Colors.grey[300], //cor do drawer / gaveta
+        foregroundColor: AppTheme.cor1, //cor do drawer / gaveta
       ),
-      backgroundColor: Colors.grey[300],
+      backgroundColor:  AppTheme.cor1,
       drawer: MyDrawer(
         onProfileTap: goToProfilePage,
         onSignOut: signOut,
@@ -74,24 +75,39 @@ class _HomePageState extends State<HomePage> {
       body: Center(
         child: Column(
           children: [
-            Container(
+         Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.grey.shade600,
-                        // spreadRadius: 2,
-                        blurRadius: 50,
-                        offset: const Offset(0, 15))
-                  ]),
-              width: MediaQuery.of(context).size.width,
-              child: Image.asset(
-                "assets/images/fundo.png",
-                fit: BoxFit.fill,
+                color: AppTheme.cor6,
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(25),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    "Bem-vindo(a)!",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.cor1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Encontre sua dieta ideal e acompanhe seu progresso.",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppTheme.cor1,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
             SizedBox(
-              height: 5,
+              height: 25,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -101,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                     AltButton(
                       onTap: goToFeedPage,
                       icon: LucideIcons.newspaper,
-                      colorBG: Colors.blueAccent,
+                      colorBG: AppTheme.cor4,
                       colorIcon: Colors.white,
                     ),
                     Text(
@@ -116,7 +132,7 @@ class _HomePageState extends State<HomePage> {
                     AltButton(
                       onTap: goToDietPage,
                       icon: LucideIcons.utensilsCrossed,
-                      colorBG: Colors.green[800],
+                      colorBG: AppTheme.cor5,
                       colorIcon: Colors.white,
                     ),
                     Text(
@@ -131,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                     AltButton(
                       onTap: () {},
                       icon: LucideIcons.calendar,
-                      colorBG: Color.fromARGB(255, 187, 17, 17),
+                      colorBG: AppTheme.cor4,
                       colorIcon: Colors.white,
                     ),
                     Text(

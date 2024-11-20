@@ -83,6 +83,7 @@ flutter:
     - assets/images/papa.png
     - assets/animations/alimentos.json
     - assets/animations/mulherPensando.json
+    - assets/images/logoProject.png
     
 flutter_icons:
   android: true

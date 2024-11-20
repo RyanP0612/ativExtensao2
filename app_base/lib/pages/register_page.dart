@@ -1,5 +1,6 @@
 import 'package:app_base/components/button.dart';
 import 'package:app_base/components/text_field.dart';
+import 'package:app_base/themes/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -96,39 +97,40 @@ String message = errorMessages[errorCode] ?? 'Ocorreu um erro desconhecido.';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
-      // Colors.grey[300] representa uma tonalidade de cinza claro da paleta de cores do Material Design.
+      backgroundColor: AppTheme.cor1, // Usando a cor 'cor1' para o fundo
 
       body: SafeArea(
-        // O SafeArea ajusta o layout para que o conteúdo não seja sobreposto por barras de status, notches ou bordas arredondadas do dispositivo.
-
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // logo
-                Icon(
-                  Icons.lock,
-                  size: 100,
+                // Logo
+           // Logo
+                Image.asset(
+                  "assets/images/logoProject.png",
+                  height: 150,
+                  // color: AppTheme.cor4, // Usando a cor 'cor4' para o ícone (verde profundo)
                 ),
-
                 const SizedBox(
                   height: 50,
                 ),
-                //bem vindo de volta
+                // Bem-vindo de volta
                 Text(
                   "Vamos criar sua conta!",
                   style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.height * 0.02),
+                    fontSize: MediaQuery.of(context).size.height * 0.02,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.cor5, // Usando a cor 'cor4' para o texto
+                  ),
                 ),
 
                 const SizedBox(
                   height: 25,
                 ),
 
-                // email textfield
+                // Email textfield
                 MyTextField(
                     controller: emailTextController,
                     hintText: 'Email',
@@ -136,7 +138,7 @@ String message = errorMessages[errorCode] ?? 'Ocorreu um erro desconhecido.';
                 const SizedBox(
                   height: 10,
                 ),
-                // senha textfield
+                // Senha textfield
                 MyTextField(
                     controller: passwordTextController,
                     hintText: 'Senha',
@@ -145,7 +147,7 @@ String message = errorMessages[errorCode] ?? 'Ocorreu um erro desconhecido.';
                 const SizedBox(
                   height: 10,
                 ),
-                // confirmar senha
+                // Confirmar senha
                 MyTextField(
                     controller: confirmPasswordTextController,
                     hintText: 'Confirmar senha',
@@ -153,19 +155,23 @@ String message = errorMessages[errorCode] ?? 'Ocorreu um erro desconhecido.';
                 const SizedBox(
                   height: 25,
                 ),
-                // butao de logar
-                MyButton(onTap: signUp, text: "Logar"),
+                // Botão de logar
+                MyButton(
+                  onTap: signUp,
+                  text: "Logar",
+                  buttonColor: AppTheme.cor4, 
+                ),
 
                 const SizedBox(
                   height: 25,
                 ),
-                // página de registro!!
+                // Página de registro
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       "Já tem uma conta?",
-                      style: TextStyle(color: Colors.grey[700]),
+                      style: TextStyle(color: AppTheme.cor5), // Usando 'cor5' para texto secundário
                     ),
                     const SizedBox(
                       width: 4,
@@ -175,7 +181,9 @@ String message = errorMessages[errorCode] ?? 'Ocorreu um erro desconhecido.';
                       child: Text(
                         "Entre agora!",
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.blue),
+                          fontWeight: FontWeight.bold, 
+                          color: AppTheme.cor4, // Usando 'cor4' para texto de ação
+                        ),
                       ),
                     )
                   ],

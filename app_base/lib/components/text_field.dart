@@ -1,3 +1,4 @@
+import 'package:app_base/themes/theme.dart';
 import 'package:flutter/material.dart';
 
 class MyTextField extends StatelessWidget {
@@ -23,11 +24,12 @@ class MyTextField extends StatelessWidget {
       obscureText: obscureText,
       decoration: InputDecoration(
           hintText: hintText,
-          enabledBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white),
+          border: const OutlineInputBorder(
+            borderSide: BorderSide(color: AppTheme.cor6),
           ),
-          fillColor: Colors.grey.shade200,
-          filled: true,
+
+          // fillColor: AppTheme.cor5,
+          filled: false,
           hintStyle: TextStyle(color: Colors.grey[500])),
     );
   }

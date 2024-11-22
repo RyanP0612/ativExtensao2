@@ -1,3 +1,4 @@
+import 'package:app_base/themes/theme.dart';
 import 'package:flutter/material.dart';
 
 class AltButton extends StatelessWidget {
@@ -21,7 +22,7 @@ class AltButton extends StatelessWidget {
         padding: EdgeInsets.all(4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50),
-          color: Colors.grey[900],
+          color: AppTheme.cor6,
         ),
         child: Container(
           padding: EdgeInsets.all(10),

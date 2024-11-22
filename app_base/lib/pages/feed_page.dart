@@ -346,13 +346,7 @@ class _FeedPageState extends State<FeedPage> {
             ),
 
             // logado como
-            Text(
-              "Logado como ${currentUser.email}",
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(
-              height: 40,
-            )
+           
           ],
         ),
       ),

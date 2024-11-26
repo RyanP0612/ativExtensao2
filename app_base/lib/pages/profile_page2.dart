@@ -35,7 +35,7 @@ class _ProfilePage2State extends State<ProfilePage2> {
         appBar: AppBar(
           centerTitle: true,
           title: Text(
-            "Seu Perfil 2",
+            "Perfil",
             style: TextStyle(color: Colors.grey[300]),
           ),
           backgroundColor: Colors.grey[900],

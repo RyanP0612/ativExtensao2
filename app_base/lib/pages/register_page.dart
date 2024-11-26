@@ -159,7 +159,7 @@ String message = errorMessages[errorCode] ?? 'Ocorreu um erro desconhecido.';
                 MyButton(
                   onTap: signUp,
                   text: "Logar",
-                  buttonColor: AppTheme.cor4, 
+                  buttonColor: AppTheme.cor3, 
                 ),
 
                 const SizedBox(
